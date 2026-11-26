@@ -33,11 +33,14 @@ It's built for people who don't write code: BBA, MBA, BCom, design, and anyone w
 ## What's in the beta
 
 - **The prologue** — four beats, first win in under a minute: wake Pip, run your first command, ask something real, catch a confident lie
-- **Operator rank** — five quests on instruction: constraints, deliverables, roles, voice, and revision. Ends in `ai`
-- **Analyst rank** — five quests on evidence: quoting a card, scope, recency, exact wording, and unsupported claims. Ends in `check`
-- **Campus map** — two active rooms, four locked, with per-rank progress and a notebook of artifacts
-- **Real AI behind every command** — Agnes 3.0 Flash, streamed from a server route. Prompt scope, moderation, rate limits and a deterministic fallback
+- **Operator rank** — five quests on instruction: constraints, deliverables, roles, voice, and revision. Ends with **The Confident Liar** boss
+- **Analyst rank** — five quests on evidence: quoting a card, scope, recency, exact wording, and unsupported claims. Ends with **The Vague Machine** boss
+- **Campus map** — two active rooms, four locked, with per-rank progress, boss trials and a notebook of artifacts
+- **Share and signup** — a native share card and an optional email list
+- **Real AI behind every command** — Agnes 3.0 Flash, streamed from a server route. Prompt scope, moderation, signed sessions, rate limits and a deterministic fallback
 - **Local progress** — XP, completed quests and artifacts in `localStorage`; no account required
+
+See [LAUNCH.md](./LAUNCH.md) for the launch checklist, env vars and the one pending manual approval.
 
 | The prologue | Quest 01 | The campus |
 | --- | --- | --- |
@@ -98,6 +101,7 @@ src/
     play/page.tsx      the prologue
     campus/page.tsx    rank map and notebook
     quest/[id]/page.tsx  generic quest player
+    boss/[id]/page.tsx   rank boss trials
     privacy/page.tsx   privacy policy
     terms/page.tsx     terms of use
     api/ai/route.ts    model proxy: scope, cap, cache, stream
@@ -105,15 +109,19 @@ src/
   components/
     Prologue.tsx       prologue state machine + copy
     QuestPlayer.tsx    generic quest renderer
+    BossPlayer.tsx     deterministic boss trials
     Campus.tsx         rank map and notebook
     Dialogue.tsx       typewriter + Pip's voice
     Terminal.tsx       line renderer + streaming
     PipSprite.tsx      the pixel robot
     ProgressStrip.tsx  local XP display
     LegalLinks.tsx     privacy, terms, AI disclosure
+    ShareButton.tsx    native share / clipboard
+    Signup.tsx         optional email capture
   game/
     types.ts           ranks and quest types
     quests.ts          ten quests, two ranks
+    bosses.ts          two rank bosses
   lib/
     ai.ts              Agnes provider
     ai-quests.ts       server-owned prompts, scopes, cards
@@ -124,7 +132,9 @@ src/
     progress.ts        XP, completed quests, artifacts
     useProgress.ts     useSyncExternalStore hook
 scripts/check-ai.mjs   provider smoke test
+.github/workflows/ci.yml  lint, typecheck, build
 .env.example           environment template
+LAUNCH.md              launch checklist and pending approvals
 docs/                  README screenshots
 ```
 
@@ -148,10 +158,10 @@ docs/                  README screenshots
 
 Next up:
 
-- The Confident Liar and The Vague Machine — the two rank bosses
 - Ranks 3–6: `flow`, `tool`, `eval`, `deploy`
-- A shared rate limiter (Upstash) and Sentry once the beta goes public
+- A shared rate limiter (Upstash) and Sentry as soon as the keys exist
 - Auth and synced progress once retention is proven
+- The pending Vercel firewall approval (see [LAUNCH.md](./LAUNCH.md))
 
 ## Status
 
