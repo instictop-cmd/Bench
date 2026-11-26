@@ -5,7 +5,7 @@
   --panel: #0a1210;
   --panel-2: #0e1a16;
   --edge: #1c3a30;
-  --edge-bright: #2f5c4b;
+  --edge-bright: #4f8a72;
   --ink: #d9ffe9;
   --dim: #6e9686;
   --accent: #7dffb3;
@@ -253,11 +253,15 @@ body {
   width: 100%;
   background: transparent;
   border: 0;
-  outline: 0;
   color: var(--amber);
   font: inherit;
   padding: 0;
   caret-color: var(--accent);
+}
+
+.cmd-input:focus-visible {
+  outline: none;
+  box-shadow: inset 0 -2px 0 0 var(--accent);
 }
 
 .cmd-input::placeholder {
@@ -346,6 +350,27 @@ body {
 
 .fade-up {
   animation: fade-up 220ms steps(4) both;
+}
+
+/* ---------- accessibility ---------- */
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ---------- misc ---------- */

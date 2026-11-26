@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PipSprite } from "@/components/PipSprite";
 import { ProgressStrip } from "@/components/ProgressStrip";
+import { LegalLinks } from "@/components/LegalLinks";
 
 export default function Home() {
   return (
@@ -94,21 +95,24 @@ export default function Home() {
           </section>
         </main>
 
-        <footer className="flex flex-col gap-3 border-t-2 border-edge/60 pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 termfont text-[15px] text-edge2">
-            <span>Operator</span>
-            <span aria-hidden>→</span>
-            <span>Analyst</span>
-            <span aria-hidden>→</span>
-            <span>Tinkerer</span>
-            <span aria-hidden>→</span>
-            <span>Integrator</span>
-            <span aria-hidden>→</span>
-            <span>Engineer</span>
-            <span aria-hidden>→</span>
-            <span>Architect</span>
+        <footer className="flex flex-col gap-3 border-t-2 border-edge/60 pt-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 termfont text-[15px] text-edge2">
+              <span>Operator</span>
+              <span aria-hidden>→</span>
+              <span>Analyst</span>
+              <span aria-hidden>→</span>
+              <span>Tinkerer</span>
+              <span aria-hidden>→</span>
+              <span>Integrator</span>
+              <span aria-hidden>→</span>
+              <span>Engineer</span>
+              <span aria-hidden>→</span>
+              <span>Architect</span>
+            </div>
+            <span className="termfont text-[14px] text-edge2">v0.1</span>
           </div>
-          <span className="termfont text-[14px] text-edge2">v0.1</span>
+          <LegalLinks />
         </footer>
       </div>
     </div>

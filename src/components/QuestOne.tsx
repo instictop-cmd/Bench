@@ -1,12 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import { useEffect, useRef, useState } from "react";
 import { Terminal, type TLine } from "./Terminal";
 import { PipSprite } from "./PipSprite";
+import { LegalLinks } from "./LegalLinks";
 import { awardOnce } from "@/lib/progress";
 import { useXp } from "@/lib/useProgress";
-import { countWords, parseCommand, streamAi } from "@/lib/ai-client";
+import {
+  countSentences,
+  countWords,
+  friendlyAiError,
+  parseCommand,
+  streamAi,
+} from "@/lib/ai-client";
 
 type Phase = "first" | "second" | "choose" | "passed";
 
@@ -33,6 +41,7 @@ export function QuestOne() {
   const [streaming, setStreaming] = useState("");
   const [answerA, setAnswerA] = useState(ANSWER_A);
   const [answerB, setAnswerB] = useState(ANSWER_B);
+  const [flipped, setFlipped] = useState(false);
   const xp = useXp();
   const [earned, setEarned] = useState(false);
 
@@ -64,7 +73,7 @@ export function QuestOne() {
 
       if (!alive.current) return null;
 
-      if (result.scopeBlocked) {
+      if (result.scopeBlocked || result.refused) {
         setStreaming("");
         setLines((prev) => [...prev, { kind: "sys", text: result.text }]);
         setInput(text);
@@ -75,13 +84,16 @@ export function QuestOne() {
       setStreaming("");
       setLines((prev) => [...prev, { kind: "out", text: answer }]);
       return answer;
-    } catch {
+    } catch (error) {
       if (!alive.current) return fallback;
 
+      track("ai_error", {
+        status: error instanceof Error ? error.message : "unknown",
+      });
       setStreaming("");
       setLines((prev) => [
         ...prev,
-        { kind: "sys", text: "machine busy · cached answer" },
+        { kind: "sys", text: friendlyAiError(error) },
         { kind: "out", text: fallback },
       ]);
       return fallback;
@@ -98,43 +110,81 @@ export function QuestOne() {
     const text = input.trim();
     if (!text || busyRef.current) return;
 
+    const prompt = parseCommand(text).toLowerCase();
+
     if (phase === "first") {
+      if (prompt !== "explain photosynthesis") {
+        setLines((prev) => [
+          ...prev,
+          {
+            kind: "sys",
+            text: 'use the command in the card: ai "explain photosynthesis"',
+          },
+        ]);
+        return;
+      }
+
       const answer = await ask(text, ANSWER_A);
       if (!alive.current || !answer) return;
       setAnswerA(answer);
       setPhase("second");
       setInput(SECOND_CMD);
+      track("quest_step", { quest: "01", step: "second" });
       return;
     }
 
     if (phase === "second") {
-      const answer = await ask(text, ANSWER_B);
-      if (!alive.current || !answer) return;
-      setAnswerB(answer);
+      const constrained =
+        prompt.includes("photosynthesis") &&
+        (prompt.includes("12") || prompt.includes("one sentence"));
 
-      if (countWords(answer) > 35) {
+      if (!constrained) {
         setLines((prev) => [
           ...prev,
           {
             kind: "sys",
-            text: "it ignored the length constraint. that's the lesson: check the output.",
+            text: 'add the constraint: ai "explain photosynthesis to a 12-year-old in one sentence"',
+          },
+        ]);
+        return;
+      }
+
+      const answer = await ask(text, ANSWER_B);
+      if (!alive.current || !answer) return;
+
+      let finalAnswer = answer;
+      if (countWords(answer) > 35 || countSentences(answer) > 2) {
+        finalAnswer = ANSWER_B;
+        setLines((prev) => [
+          ...prev,
+          {
+            kind: "sys",
+            text: "it ignored the limit, so here is the reference answer. that is the lesson: check the output.",
           },
         ]);
       }
 
+      setAnswerB(finalAnswer);
+      setFlipped(Math.random() < 0.5);
       setPhase("choose");
+      track("quest_step", { quest: "01", step: "choose" });
     }
   }
 
   function chooseA() {
+    track("quest_step", { quest: "01", step: "retry" });
     setLines((prev) => [
       ...prev,
-      { kind: "err", text: "not quite. which one would a 12-year-old actually get?" },
+      {
+        kind: "sys",
+        text: "not quite. which one would a 12-year-old actually get?",
+      },
     ]);
   }
 
   function chooseB() {
     if (phase !== "choose") return;
+    track("quest_complete", { quest: "01" });
     const fresh = awardOnce({
       xp: 10,
       key: "bench.quest.1.done",
@@ -154,6 +204,22 @@ export function QuestOne() {
     phase === "second" || phase === "choose" || phase === "passed";
   const secondDone = phase === "choose" || phase === "passed";
   const showInput = phase === "first" || phase === "second";
+
+  const choices = [
+    {
+      key: "A",
+      label: "the first answer",
+      words: countWords(answerA),
+      onPick: chooseA,
+    },
+    {
+      key: "B",
+      label: "the second answer",
+      words: countWords(answerB),
+      onPick: chooseB,
+    },
+  ];
+  const orderedChoices = flipped ? [...choices].reverse() : choices;
 
   return (
     <div className="crt min-h-screen">
@@ -319,20 +385,16 @@ export function QuestOne() {
                       <p className="termfont text-center text-[15px] text-dim">
                         which one would you actually use?
                       </p>
-                      <button
-                        type="button"
-                        className="chip"
-                        onClick={chooseA}
-                      >
-                        A · the first answer · {countWords(answerA)} words
-                      </button>
-                      <button
-                        type="button"
-                        className="chip"
-                        onClick={chooseB}
-                      >
-                        B · the second answer · {countWords(answerB)} words
-                      </button>
+                      {orderedChoices.map((choice) => (
+                        <button
+                          key={choice.key}
+                          type="button"
+                          className="chip"
+                          onClick={choice.onPick}
+                        >
+                          {choice.key} · {choice.label} · {choice.words} words
+                        </button>
+                      ))}
                     </>
                   ) : null}
 
@@ -364,13 +426,16 @@ export function QuestOne() {
           </section>
         </main>
 
-        <footer className="flex items-center justify-between gap-4 border-t-2 border-edge/60 pt-3">
-          <span className="termfont text-[14px] text-edge2">
-            one constraint changes everything
-          </span>
-          <span className="termfont text-[14px] text-edge2">
-            quest 01 / 05
-          </span>
+        <footer className="flex flex-col gap-2 border-t-2 border-edge/60 pt-3">
+          <div className="flex items-center justify-between gap-4">
+            <span className="termfont text-[14px] text-edge2">
+              one constraint changes everything
+            </span>
+            <span className="termfont text-[14px] text-edge2">
+              quest 01 / 05
+            </span>
+          </div>
+          <LegalLinks />
         </footer>
       </div>
     </div>

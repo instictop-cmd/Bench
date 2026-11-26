@@ -1,9 +1,20 @@
 export type AiResult = {
   text: string;
   scopeBlocked: boolean;
+  refused: boolean;
   cached: boolean;
   mock: boolean;
 };
+
+export class AiClientError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "AiClientError";
+  }
+}
 
 export async function streamAi(
   prompt: string,
@@ -19,16 +30,17 @@ export async function streamAi(
   });
 
   if (!res.ok) {
-    throw new Error(`ai ${res.status}`);
+    throw new AiClientError(res.status, `ai ${res.status}`);
   }
 
   const scopeBlocked = res.headers.get("x-bench-scope") === "blocked";
+  const refused = res.headers.get("x-bench-moderation") === "refused";
   const cached = res.headers.get("x-bench-cache") === "hit";
   const mock = res.headers.get("x-bench-mock") === "1";
 
   if (!res.body) {
     const text = await res.text();
-    return { text, scopeBlocked, cached, mock };
+    return { text, scopeBlocked, refused, cached, mock };
   }
 
   const reader = res.body.getReader();
@@ -46,16 +58,40 @@ export async function streamAi(
     onChunk(chunk);
   }
 
-  return { text, scopeBlocked, cached, mock };
+  return { text, scopeBlocked, refused, cached, mock };
+}
+
+export function friendlyAiError(error: unknown): string {
+  if (error instanceof AiClientError) {
+    if (error.status === 429) return "hourly limit reached · cached answer";
+    if (error.status === 401 || error.status === 403) {
+      return "session expired · refresh the page";
+    }
+    if (error.status === 502 || error.status === 503) {
+      return "machine unavailable · cached answer";
+    }
+  }
+  return "machine busy · cached answer";
 }
 
 export function parseCommand(raw: string): string {
   const quoted = raw.match(/^\s*ai\s+["']([\s\S]*)["']\s*$/i);
   if (quoted) return quoted[1].trim();
 
-  return raw.replace(/^\s*ai\s+/i, "").replace(/^["']|["']$/g, "").trim();
+  return raw
+    .replace(/^\s*ai\s+/i, "")
+    .replace(/^["']|["']$/g, "")
+    .trim();
 }
 
 export function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+export function countSentences(text: string): number {
+  return text
+    .trim()
+    .split(/[.!?]+(?:\s|$)/)
+    .map((part) => part.trim())
+    .filter(Boolean).length;
 }

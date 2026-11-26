@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import { useEffect, useRef, useState } from "react";
 import { Dialogue } from "./Dialogue";
 import { PipSprite } from "./PipSprite";
 import { Terminal, type TLine } from "./Terminal";
-import { parseCommand, streamAi } from "@/lib/ai-client";
+import { LegalLinks } from "./LegalLinks";
+import { friendlyAiError, parseCommand, streamAi } from "@/lib/ai-client";
 
 type Phase =
   | "boot"
@@ -141,6 +143,7 @@ export function Prologue() {
 
       setStreaming("");
       setLines((prev) => [...prev, { kind: "out", text: result.text }]);
+      track("prologue_ask");
 
       if (result.mock) {
         setLines((prev) => [
@@ -148,13 +151,13 @@ export function Prologue() {
           { kind: "sys", text: "mock model · add a key to .env.local to go live" },
         ]);
       }
-    } catch {
+    } catch (error) {
       if (!alive.current) return;
 
       setStreaming("");
       setLines((prev) => [
         ...prev,
-        { kind: "sys", text: "machine busy · cached answer" },
+        { kind: "sys", text: friendlyAiError(error) },
       ]);
 
       for (const out of responseFor(prompt)) {
@@ -172,6 +175,7 @@ export function Prologue() {
   }
 
   function wake() {
+    track("prologue_start");
     setLines((prev) => [...prev, { kind: "sys", text: "online." }]);
     go("command");
     setInput('ai "hello"');
@@ -254,6 +258,7 @@ export function Prologue() {
         </header>
 
         <main className="grid flex-1 gap-4 py-4 lg:grid-cols-[0.88fr_1.12fr] lg:gap-6 lg:py-6">
+          <h1 className="sr-only">The Basement — Bench prologue</h1>
           {/* ---------- scene ---------- */}
           <section className="pixel-panel pixel-panel--lit relative overflow-hidden">
             <div className="scene-grid pointer-events-none absolute inset-0 opacity-60" />
@@ -322,7 +327,10 @@ export function Prologue() {
                     <button
                       type="button"
                       className="pixel-btn w-full"
-                      onClick={() => go("handoff")}
+                      onClick={() => {
+                        track("prologue_complete");
+                        go("handoff");
+                      }}
                     >
                       I understand
                     </button>
@@ -419,11 +427,16 @@ export function Prologue() {
           </section>
         </main>
 
-        <footer className="flex items-center justify-between gap-4 border-t-2 border-edge/60 pt-3">
-          <span className="termfont text-[14px] text-edge2">
-            a lab for learning AI by doing
-          </span>
-          <span className="termfont text-[14px] text-edge2">v0.1 · prologue</span>
+        <footer className="flex flex-col gap-2 border-t-2 border-edge/60 pt-3">
+          <div className="flex items-center justify-between gap-4">
+            <span className="termfont text-[14px] text-edge2">
+              a lab for learning AI by doing
+            </span>
+            <span className="termfont text-[14px] text-edge2">
+              v0.1 · prologue
+            </span>
+          </div>
+          <LegalLinks />
         </footer>
       </div>
     </div>
