@@ -79,6 +79,7 @@ vercel firewall rules list
 - **Sentry**: create a project, add `SENTRY_DSN`, install `@sentry/nextjs`. Until then, errors are logged server-side and the app has a friendly error page.
 - **Upstash**: create a free Redis database and add the two env vars. The limiter switches automatically.
 - **Signup**: add a form endpoint to `NEXT_PUBLIC_SIGNUP_URL`; until then the campus shows a mailto beta-list link.
+- **Contact email**: `instictop@gmail.com` appears in the legal pages and report links. Replace it with a project address before a wide launch.
 - **Custom domain**: optional for the beta; point it in Vercel and update `NEXT_PUBLIC_SITE_URL`.
 - **Agnes spend cap**: set a hard monthly limit in the Agnes dashboard.
 
