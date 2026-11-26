@@ -30,22 +30,18 @@ It's built for people who don't write code: BBA, MBA, BCom, design, and anyone w
 
 **The design rule:** every rank unlocks a new *verb*, not just more lessons.
 
-## What's in v0.1
+## What's in the beta
 
-- **Landing page** with a living scene and a progress strip
-- **The prologue** — four beats, first win in under a minute:
-  1. Wake Pip up
-  2. Run your first command (pre-written — just press Enter)
-  3. Ask something real
-  4. Catch Pip in a confident lie, and learn why verification is your job
-- **Quest 01 · Hello, Operator** — ask the same question twice, add one constraint, pick the better answer
-- **+10 XP**, a **Clarity Lens** notebook item, and `Operator · 1/5` rank progress
-- **Real AI behind the `ai` command** — Agnes 3.0 Flash, streamed from a server route so the key never reaches the browser. Without a key it falls back to a deterministic mock
-- Progress saved locally, no account required
+- **The prologue** — four beats, first win in under a minute: wake Pip, run your first command, ask something real, catch a confident lie
+- **Operator rank** — five quests on instruction: constraints, deliverables, roles, voice, and revision. Ends in `ai`
+- **Analyst rank** — five quests on evidence: quoting a card, scope, recency, exact wording, and unsupported claims. Ends in `check`
+- **Campus map** — two active rooms, four locked, with per-rank progress and a notebook of artifacts
+- **Real AI behind every command** — Agnes 3.0 Flash, streamed from a server route. Prompt scope, moderation, rate limits and a deterministic fallback
+- **Local progress** — XP, completed quests and artifacts in `localStorage`; no account required
 
-| The prologue | Quest 01 |
-| --- | --- |
-| ![The prologue](docs/prologue.png) | ![Quest 01](docs/quest-1.png) |
+| The prologue | Quest 01 | The campus |
+| --- | --- | --- |
+| ![The prologue](docs/prologue.png) | ![Quest 01](docs/quest-1.png) | ![The campus](docs/campus.png) |
 
 ## Run it
 
@@ -100,20 +96,32 @@ src/
   app/
     page.tsx           landing page
     play/page.tsx      the prologue
-    quest/1/page.tsx   quest 01
+    campus/page.tsx    rank map and notebook
+    quest/[id]/page.tsx  generic quest player
+    privacy/page.tsx   privacy policy
+    terms/page.tsx     terms of use
     api/ai/route.ts    model proxy: scope, cap, cache, stream
     globals.css        CRT, pixel panels, buttons
   components/
     Prologue.tsx       prologue state machine + copy
-    QuestOne.tsx       quest 01
+    QuestPlayer.tsx    generic quest renderer
+    Campus.tsx         rank map and notebook
     Dialogue.tsx       typewriter + Pip's voice
     Terminal.tsx       line renderer + streaming
     PipSprite.tsx      the pixel robot
     ProgressStrip.tsx  local XP display
+    LegalLinks.tsx     privacy, terms, AI disclosure
+  game/
+    types.ts           ranks and quest types
+    quests.ts          ten quests, two ranks
   lib/
-    ai.ts              Agnes provider, system prompt, mock
-    ai-client.ts       browser streaming client + command parser
-    progress.ts        XP, notebook, storage events
+    ai.ts              Agnes provider
+    ai-quests.ts       server-owned prompts, scopes, cards
+    ai-client.ts       browser streaming client + parsers
+    moderation.ts      safety gate
+    rate-limit.ts      memory + Redis limiter
+    session.ts         signed session cookie
+    progress.ts        XP, completed quests, artifacts
     useProgress.ts     useSyncExternalStore hook
 scripts/check-ai.mjs   provider smoke test
 .env.example           environment template
@@ -140,14 +148,14 @@ docs/                  README screenshots
 
 Next up:
 
-- Quests 02–05 and the Confident Liar boss
-- A shared rate limiter (Upstash) once the beta goes public
-- The rank/unlock engine as data, with ranks 3–6 visible as locked silhouettes
+- The Confident Liar and The Vague Machine — the two rank bosses
+- Ranks 3–6: `flow`, `tool`, `eval`, `deploy`
+- A shared rate limiter (Upstash) and Sentry once the beta goes public
 - Auth and synced progress once retention is proven
 
 ## Status
 
-Early prototype, v0.1. Live at [bench-sepia.vercel.app](https://bench-sepia.vercel.app). The `ai` command runs through Agnes AI, with a deterministic mock as the fallback when no key is present. XP is local and there is no auth or database yet — the goal is to prove the loop before adding accounts.
+Public beta. The `ai` and `check` commands run through Agnes AI, with a deterministic fallback when no key is present. XP is local and there is no auth or database yet — the goal is to prove the loop before adding accounts.
 
 Independent student project. Not affiliated with any company or institution.
 

@@ -1,13 +1,6 @@
 import type { NextRequest } from "next/server";
-import {
-  AI_MODES,
-  AiError,
-  isLive,
-  mockAnswer,
-  streamAgnes,
-  SYSTEM_PROMPTS,
-  type AiMode,
-} from "@/lib/ai";
+import { AiError, isLive, streamAgnes } from "@/lib/ai";
+import { AI_QUESTS } from "@/lib/ai-quests";
 import { moderationVerdict, refusalFor } from "@/lib/moderation";
 import { getLimiter } from "@/lib/rate-limit";
 import { SESSION_COOKIE, verifySession } from "@/lib/session";
@@ -18,6 +11,7 @@ const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 const DAILY_CAP = Number(process.env.AI_DAILY_CAP ?? 2_000);
 const MAX_PROMPT = 500;
+const MAX_CONTEXT = 800;
 const MAX_BODY = 16_384;
 
 const cache = new Map<string, { text: string; mock: boolean }>();
@@ -69,7 +63,12 @@ function isAllowedOrigin(req: NextRequest): boolean {
   return allowed.has(origin);
 }
 
-type Body = { prompt?: unknown; mode?: unknown };
+type Body = {
+  prompt?: unknown;
+  questId?: unknown;
+  mode?: unknown;
+  context?: unknown;
+};
 
 export async function POST(req: NextRequest) {
   const contentType = req.headers.get("content-type") ?? "";
@@ -99,14 +98,23 @@ export async function POST(req: NextRequest) {
   }
 
   const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
-  const mode = typeof body.mode === "string" ? body.mode : "";
+  const id =
+    typeof body.questId === "string"
+      ? body.questId
+      : typeof body.mode === "string"
+        ? body.mode
+        : "";
+  const context =
+    typeof body.context === "string"
+      ? body.context.slice(0, MAX_CONTEXT).trim()
+      : "";
 
   if (!prompt || prompt.length > MAX_PROMPT) {
     return text(`prompt must be 1-${MAX_PROMPT} characters`, 400);
   }
 
-  const config = AI_MODES[mode as AiMode];
-  if (!config) return text("unknown mode", 400);
+  const config = AI_QUESTS[id];
+  if (!config) return text("unknown quest", 400);
 
   if (moderationVerdict(prompt) === "refuse") {
     return text(refusalFor(prompt), 200, { "x-bench-moderation": "refused" });
@@ -143,8 +151,8 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const key = `${mode}:${prompt.toLowerCase()}`;
-  const cacheable = mode !== "prologue";
+  const key = `${id}:${prompt.toLowerCase()}`;
+  const cacheable = id !== "prologue" && !context;
 
   if (cacheable) {
     const hit = cacheGet(key);
@@ -157,16 +165,19 @@ export async function POST(req: NextRequest) {
   }
 
   if (!isLive()) {
-    const answer = mockAnswer(prompt);
+    const answer = config.fallback;
     if (cacheable) cacheSet(key, { text: answer, mock: true });
     return text(answer, 200, { "x-bench-mock": "1" });
   }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20_000);
+  const userPrompt = context
+    ? `${prompt}\n\nDraft from the previous step:\n${context}`
+    : prompt;
   const iterator = streamAgnes(
-    prompt,
-    SYSTEM_PROMPTS[mode as AiMode],
+    userPrompt,
+    config.systemPrompt,
     controller.signal,
   )[Symbol.asyncIterator]();
 

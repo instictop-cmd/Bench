@@ -249,7 +249,7 @@ export function Prologue() {
               ))}
             </div>
             <Link
-              href="/quest/1"
+              href="/quest/op-01"
               className="termfont text-[15px] text-dim underline decoration-edge2 underline-offset-4 hover:text-ink"
             >
               used AI before? skip
@@ -338,7 +338,7 @@ export function Prologue() {
 
                   {phase === "handoff" ? (
                     <div className="flex flex-col gap-2">
-                      <Link href="/quest/1" className="pixel-btn w-full">
+                      <Link href="/quest/op-01" className="pixel-btn w-full">
                         Walk to the library →
                       </Link>
                       <p className="termfont text-center text-[14px] text-dim">

@@ -1,10 +1,21 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import { readXp, subscribeProgress } from "./progress";
+import { useMemo, useSyncExternalStore } from "react";
+import {
+  decodeProgress,
+  progressSnapshot,
+  subscribeProgress,
+  type Progress,
+} from "./progress";
 
-const getServerSnapshot = () => 0;
+const getServerSnapshot = () => "";
 
-export function useXp(): number {
-  return useSyncExternalStore(subscribeProgress, readXp, getServerSnapshot);
+export function useProgress(): Progress {
+  const raw = useSyncExternalStore(
+    subscribeProgress,
+    progressSnapshot,
+    getServerSnapshot,
+  );
+
+  return useMemo(() => decodeProgress(raw), [raw]);
 }

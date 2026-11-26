@@ -47,7 +47,7 @@ export default function Home() {
               <Link href="/play" className="pixel-btn">
                 Enter the basement →
               </Link>
-              <Link href="/quest/1" className="pixel-btn pixel-btn--ghost">
+              <Link href="/quest/op-01" className="pixel-btn pixel-btn--ghost">
                 I&apos;ve used AI before
               </Link>
             </div>

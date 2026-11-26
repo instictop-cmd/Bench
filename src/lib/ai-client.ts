@@ -18,15 +18,19 @@ export class AiClientError extends Error {
 
 export async function streamAi(
   prompt: string,
-  mode: string,
+  id: string,
   onChunk: (chunk: string) => void,
-  signal?: AbortSignal,
+  options?: { context?: string; signal?: AbortSignal },
 ): Promise<AiResult> {
   const res = await fetch("/api/ai", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, mode }),
-    signal,
+    body: JSON.stringify({
+      prompt,
+      questId: id,
+      context: options?.context,
+    }),
+    signal: options?.signal,
   });
 
   if (!res.ok) {
