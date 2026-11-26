@@ -12,6 +12,8 @@ Wake a dormant agent in a basement. Teach it what you know. One quest at a time.
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-7DFFB3)](./LICENSE)
 
+**[Open the live lab →](https://bench-sepia.vercel.app)**
+
 [Run it](#run-it) · [How it works](#how-it-works) · [Roadmap](#roadmap)
 
 </div>
@@ -68,6 +70,16 @@ npm run lint       # eslint
 npm run typecheck  # tsc --noEmit
 npm run build      # production build
 ```
+
+### Deploy
+
+Hosted on Vercel. Set `AI_API_KEY`, `AI_BASE_URL`, and `AI_MODEL` in the project environment, then:
+
+```bash
+vercel --prod
+```
+
+No database, auth provider, or other service to provision.
 
 ## How it works
 
@@ -135,7 +147,7 @@ Next up:
 
 ## Status
 
-Early prototype, v0.1. The `ai` command is live through Agnes AI when `AI_API_KEY` is set, with a deterministic mock as the fallback. XP is local and there is no auth or database yet — the goal is to prove the loop before adding accounts.
+Early prototype, v0.1. Live at [bench-sepia.vercel.app](https://bench-sepia.vercel.app). The `ai` command runs through Agnes AI, with a deterministic mock as the fallback when no key is present. XP is local and there is no auth or database yet — the goal is to prove the loop before adding accounts.
 
 Independent student project. Not affiliated with any company or institution.
 
