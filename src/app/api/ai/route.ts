@@ -217,8 +217,10 @@ export async function POST(req: NextRequest) {
         if (cacheable) cacheSet(key, { text: full, mock: false });
         streamController.close();
       } catch (error) {
-        console.error("[ai] stream failed", error);
-        streamController.error(error);
+        if (!controller.signal.aborted) {
+          console.error("[ai] stream failed", error);
+          streamController.error(error);
+        }
       } finally {
         clearTimeout(timeout);
       }

@@ -12,6 +12,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/campus", priority: 0.9, changeFrequency: "weekly" as const },
     { path: "/quest/op-01", priority: 0.8, changeFrequency: "monthly" as const },
     { path: "/quest/an-01", priority: 0.7, changeFrequency: "monthly" as const },
+    { path: "/boss/op-boss", priority: 0.6, changeFrequency: "monthly" as const },
+    { path: "/boss/an-boss", priority: 0.6, changeFrequency: "monthly" as const },
     { path: "/privacy", priority: 0.2, changeFrequency: "yearly" as const },
     { path: "/terms", priority: 0.2, changeFrequency: "yearly" as const },
   ].map(({ path, priority, changeFrequency }) => ({

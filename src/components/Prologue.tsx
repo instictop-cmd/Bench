@@ -398,17 +398,24 @@ export function Prologue() {
                       <span className="termfont text-[20px] text-accent">
                         &gt;
                       </span>
-                      <input
+                      <textarea
                         autoFocus
+                        rows={2}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" && !event.shiftKey) {
+                            event.preventDefault();
+                            void submit();
+                          }
+                        }}
                         disabled={busy}
                         placeholder="type anything, or press enter"
                         aria-label="Terminal command"
                         spellCheck={false}
                         autoComplete="off"
                         enterKeyHint="send"
-                        className="cmd-input termfont text-[20px]"
+                        className="cmd-input termfont resize-none text-[20px]"
                       />
                       <span className="termfont hidden shrink-0 text-[14px] text-edge2 sm:inline">
                         enter ↵

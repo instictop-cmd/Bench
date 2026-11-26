@@ -14,6 +14,7 @@ import {
   streamAi,
 } from "@/lib/ai-client";
 import { nextQuest, questsForRank } from "@/game/quests";
+import { bossForRank } from "@/game/bosses";
 import { RANKS, type Quest, type QuestChoice } from "@/game/types";
 
 export function QuestPlayer({ quest }: { quest: Quest }) {
@@ -42,7 +43,8 @@ export function QuestPlayer({ quest }: { quest: Quest }) {
   const rankDone = siblings.filter((item) =>
     progress.completed.includes(item.id),
   ).length;
-  const next = nextQuest(quest.id);
+  const next = quest.order < 5 ? nextQuest(quest.id) : undefined;
+  const boss = quest.order === 5 ? bossForRank(quest.rank) : undefined;
   const step = quest.steps[stepIndex];
   const alreadyDone = progress.completed.includes(quest.id);
 
@@ -348,6 +350,13 @@ export function QuestPlayer({ quest }: { quest: Quest }) {
                         >
                           Next quest · {next.title}
                         </Link>
+                      ) : boss ? (
+                        <Link
+                          href={`/boss/${boss.id}`}
+                          className="pixel-btn pixel-btn--ghost w-full"
+                        >
+                          Boss trial · {boss.title}
+                        </Link>
                       ) : (
                         <Link
                           href="/campus"
@@ -378,16 +387,23 @@ export function QuestPlayer({ quest }: { quest: Quest }) {
                         <span className="termfont text-[20px] text-accent">
                           &gt;
                         </span>
-                        <input
+                        <textarea
                           autoFocus
+                          rows={2}
                           value={input}
                           onChange={(event) => setInput(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" && !event.shiftKey) {
+                              event.preventDefault();
+                              void submit();
+                            }
+                          }}
                           disabled={busy}
                           aria-label="Terminal command"
                           spellCheck={false}
                           autoComplete="off"
                           enterKeyHint="send"
-                          className="cmd-input termfont text-[20px]"
+                          className="cmd-input termfont resize-none text-[20px]"
                         />
                         <span className="termfont hidden shrink-0 text-[14px] text-edge2 sm:inline">
                           enter ↵

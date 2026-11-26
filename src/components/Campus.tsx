@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { LegalLinks } from "./LegalLinks";
+import { ShareButton } from "./ShareButton";
+import { Signup } from "./Signup";
 import { useProgress } from "@/lib/useProgress";
 import { QUESTS, questsForRank } from "@/game/quests";
+import { bossForRank } from "@/game/bosses";
 import { LOCKED_RANKS, RANKS } from "@/game/types";
 
 export function Campus() {
@@ -11,6 +14,9 @@ export function Campus() {
   const artifacts = QUESTS.filter((quest) =>
     progress.artifacts.includes(quest.artifact.id),
   );
+  const completedQuests = QUESTS.filter((quest) =>
+    progress.completed.includes(quest.id),
+  ).length;
 
   return (
     <div className="crt min-h-screen">
@@ -40,6 +46,13 @@ export function Campus() {
             doors unlock. Everything you make lands in your notebook.
           </p>
 
+          <div className="mt-4 max-w-xs">
+            <ShareButton
+              label="Share the lab"
+              text={`I'm at ${progress.xp} XP on Bench — a pixel lab for learning AI.`}
+            />
+          </div>
+
           {progress.completed.length === 0 ? (
             <div className="mt-6 flex flex-wrap items-center gap-3 border-2 border-edge2 bg-accent/10 px-4 py-3">
               <span className="termfont text-[17px] text-ink">
@@ -60,6 +73,12 @@ export function Campus() {
               const nextQuest = quests.find(
                 (quest) => !progress.completed.includes(quest.id),
               );
+              const boss = bossForRank(rank.id);
+              const bossDone = boss
+                ? progress.completed.includes(boss.id)
+                : false;
+              const bossUnlocked = done === quests.length;
+              const rankComplete = bossUnlocked && bossDone;
 
               return (
                 <section
@@ -125,6 +144,50 @@ export function Campus() {
                       })}
                     </ol>
 
+                    {boss ? (
+                      <div
+                        className={`border-2 px-3 py-2 ${
+                          bossDone
+                            ? "border-accent bg-accent/10"
+                            : bossUnlocked
+                              ? "border-edge2 bg-black/20"
+                              : "border-edge/60 bg-black/10 opacity-60"
+                        }`}
+                      >
+                        {bossDone ? (
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="termfont text-[16px] text-accent">
+                              boss passed · {boss.title}
+                            </span>
+                            <span className="pxfont text-[8px] text-accent">
+                              ✓
+                            </span>
+                          </div>
+                        ) : bossUnlocked ? (
+                          <Link
+                            href={`/boss/${boss.id}`}
+                            className="flex items-center justify-between gap-3"
+                          >
+                            <span className="termfont text-[16px] text-ink">
+                              boss trial · {boss.title}
+                            </span>
+                            <span className="termfont text-[15px] text-amber">
+                              enter →
+                            </span>
+                          </Link>
+                        ) : (
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="termfont text-[16px] text-dim">
+                              boss trial · {boss.title}
+                            </span>
+                            <span className="termfont text-[14px] text-edge2">
+                              {quests.length - done} quests left
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+
                     <div className="mt-auto flex items-center justify-between gap-3">
                       <span className="termfont text-[15px] text-dim">
                         {done} / {quests.length} complete
@@ -136,11 +199,18 @@ export function Campus() {
                         >
                           continue →
                         </Link>
-                      ) : (
+                      ) : boss && bossUnlocked && !bossDone ? (
+                        <Link
+                          href={`/boss/${boss.id}`}
+                          className="termfont text-[15px] text-amber underline decoration-amber/40 underline-offset-4 hover:text-ink"
+                        >
+                          boss trial →
+                        </Link>
+                      ) : rankComplete ? (
                         <span className="termfont text-[15px] text-accent">
                           rank complete
                         </span>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </section>
@@ -175,6 +245,19 @@ export function Campus() {
           </section>
 
           <section className="mt-8">
+            <p className="kicker">stay in the loop</p>
+            <h2 className="pxfont mt-3 text-[13px] text-ink">
+              One new quest a week
+            </h2>
+            <p className="termfont mt-2 text-[17px] text-dim">
+              No spam. No account. Leave whenever.
+            </p>
+            <div className="mt-3 max-w-lg">
+              <Signup />
+            </div>
+          </section>
+
+          <section className="mt-8">
             <p className="kicker">still dark</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {LOCKED_RANKS.map((rank) => (
@@ -198,7 +281,7 @@ export function Campus() {
         <footer className="flex flex-col gap-2 border-t-2 border-edge/60 pt-3">
           <div className="flex items-center justify-between gap-4">
             <span className="termfont text-[14px] text-edge2">
-              {progress.completed.length} of {QUESTS.length} quests complete
+              {completedQuests} of {QUESTS.length} quests complete
             </span>
             <Link
               href="/"
