@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bench
 
-## Getting Started
+A pixel lab where complete beginners learn to actually use AI — by waking up a
+small machine in a basement and teaching it what they know.
 
-First, run the development server:
+**v0.1** ships the prologue and the first quest.
+
+## What's here
+
+- `/` — landing page
+- `/play` — the prologue: four beats, first win in under a minute
+- `/quest/1` — *Hello, Operator*: same question twice, learn to hear the difference
+
+## Run it
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How it works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Scripted runtime, not a real shell.** A small command layer renders the
+  terminal and validates outcomes. This keeps v0 free, safe, and instant.
+- **Labs are data.** The prologue and quest 1 are phase machines over a small
+  `TLine[]` stream. The same shape becomes the declarative `Lab` spec when the
+  runtime grows up.
+- **Progress is local.** XP and notebook items live in `localStorage`
+  (`src/lib/progress.ts`). No auth, no database, no setup — yet.
+- **The interface seam.** `Terminal` + the phase machine are deliberately dumb so
+  a real model proxy or sandbox can slot in behind them without rewriting content.
 
-## Learn More
+## Design rules
 
-To learn more about Next.js, take a look at the following resources:
+1. The first command is `ai "..."`, never `ls`.
+2. Nothing can be broken. Reset and hints, no red X.
+3. The prologue is a chapter, not a gate.
+4. Each rank unlocks a new verb, not just more lessons.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Roadmap
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Rank | Zone | Verb |
+|---|---|---|
+| Operator | Library | `ai` |
+| Analyst | Archive | `check` |
+| Tinkerer | Workshop | `flow` |
+| Integrator | Server Room | `tool` |
+| Engineer | Observatory | `eval` |
+| Architect | Rooftop | `deploy` |
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next up: quests 2–5, the Confident Liar boss, XP/rank state, and a real model
+proxy behind the `ai` command.
