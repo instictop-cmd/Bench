@@ -18,6 +18,7 @@ type TerminalProps = {
   lines: TLine[];
   busy?: boolean;
   idle?: boolean;
+  streaming?: string;
   footer?: ReactNode;
   className?: string;
 };
@@ -26,6 +27,7 @@ export function Terminal({
   lines,
   busy = false,
   idle = false,
+  streaming = "",
   footer,
   className = "",
 }: TerminalProps) {
@@ -35,7 +37,7 @@ export function Terminal({
     const el = scroller.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  }, [lines, busy]);
+  }, [lines, busy, streaming]);
 
   return (
     <div className={`flex min-h-0 flex-col ${className}`}>
@@ -51,7 +53,14 @@ export function Terminal({
           </div>
         ))}
 
-        {busy ? (
+        {streaming ? (
+          <div className="term-line term-out">
+            {streaming}
+            <span className="term-caret ml-1" />
+          </div>
+        ) : null}
+
+        {busy && !streaming ? (
           <div className="term-line">
             <span className="term-caret" />
           </div>

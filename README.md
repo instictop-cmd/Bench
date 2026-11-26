@@ -38,6 +38,7 @@ It's built for people who don't write code: BBA, MBA, BCom, design, and anyone w
   4. Catch Pip in a confident lie, and learn why verification is your job
 - **Quest 01 · Hello, Operator** — ask the same question twice, add one constraint, pick the better answer
 - **+10 XP**, a **Clarity Lens** notebook item, and `Operator · 1/5` rank progress
+- **Real AI behind the `ai` command** — Agnes 3.0 Flash, streamed from a server route so the key never reaches the browser. Without a key it falls back to a deterministic mock
 - Progress saved locally, no account required
 
 | The prologue | Quest 01 |
@@ -50,10 +51,17 @@ Requires Node.js 20.9 or newer.
 
 ```bash
 npm install
+cp .env.example .env.local   # add your Agnes AI key to AI_API_KEY
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+The app runs without a key using a deterministic mock. To check the provider before opening the app:
+
+```bash
+npm run ai:check
+```
 
 ```bash
 npm run lint       # eslint
@@ -63,7 +71,9 @@ npm run build      # production build
 
 ## How it works
 
-**Scripted runtime, real interface.** v0.1 runs a small command layer in the browser — no server, no API keys, no setup. The prologue and quest 01 are phase machines over a `TLine[]` stream.
+**Real model, server-side.** The `ai` command posts to `/api/ai`, which calls Agnes AI's OpenAI-compatible endpoint and streams the answer back. The key lives in `.env.local` (or Vercel environment variables) and never reaches the browser. If the provider fails, the terminal falls back to a deterministic answer so the lesson still works.
+
+**Scoped by design.** The prologue accepts any question. Quests declare a topic whitelist, so out-of-scope prompts are redirected without a model call. On top of that: a 220-token output cap, a 20-request hourly limit per IP, and a prompt cache for repeats.
 
 **Progress is local.** XP and notebook items live in `localStorage`, read through `useSyncExternalStore` and updated by an append-style event (`bench:progress`). There is no auth or database yet.
 
@@ -79,17 +89,22 @@ src/
     page.tsx           landing page
     play/page.tsx      the prologue
     quest/1/page.tsx   quest 01
+    api/ai/route.ts    model proxy: scope, cap, cache, stream
     globals.css        CRT, pixel panels, buttons
   components/
     Prologue.tsx       prologue state machine + copy
     QuestOne.tsx       quest 01
     Dialogue.tsx       typewriter + Pip's voice
-    Terminal.tsx       line renderer
+    Terminal.tsx       line renderer + streaming
     PipSprite.tsx      the pixel robot
     ProgressStrip.tsx  local XP display
   lib/
+    ai.ts              Agnes provider, system prompt, mock
+    ai-client.ts       browser streaming client + command parser
     progress.ts        XP, notebook, storage events
     useProgress.ts     useSyncExternalStore hook
+scripts/check-ai.mjs   provider smoke test
+.env.example           environment template
 docs/                  README screenshots
 ```
 
@@ -114,13 +129,13 @@ docs/                  README screenshots
 Next up:
 
 - Quests 02–05 and the Confident Liar boss
-- A real model proxy behind the `ai` command, rate-limited per session
+- A shared rate limiter (Upstash) once the beta goes public
 - The rank/unlock engine as data, with ranks 3–6 visible as locked silhouettes
 - Auth and synced progress once retention is proven
 
 ## Status
 
-Early prototype, v0.1. The AI is scripted, XP is local, and there is no backend. That's intentional — the goal is to prove the loop before adding infrastructure.
+Early prototype, v0.1. The `ai` command is live through Agnes AI when `AI_API_KEY` is set, with a deterministic mock as the fallback. XP is local and there is no auth or database yet — the goal is to prove the loop before adding accounts.
 
 Independent student project. Not affiliated with any company or institution.
 

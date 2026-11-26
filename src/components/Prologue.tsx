@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Dialogue } from "./Dialogue";
 import { PipSprite } from "./PipSprite";
 import { Terminal, type TLine } from "./Terminal";
+import { parseCommand, streamAi } from "@/lib/ai-client";
 
 type Phase =
   | "boot"
@@ -80,6 +81,7 @@ export function Prologue() {
   const [lines, setLines] = useState<TLine[]>(START_LINES);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [streaming, setStreaming] = useState("");
 
   const alive = useRef(true);
   const busyRef = useRef(false);
@@ -118,6 +120,57 @@ export function Prologue() {
     setBusy(false);
   }
 
+  async function runAsk(text: string) {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusy(true);
+    setInput("");
+    setStreaming("");
+    setLines((prev) => [...prev, { kind: "in", text }]);
+
+    const prompt = parseCommand(text);
+
+    try {
+      const result = await streamAi(prompt, "prologue", (chunk) => {
+        if (alive.current) setStreaming((prev) => prev + chunk);
+      });
+
+      if (!alive.current) return;
+
+      if (!result.text.trim()) throw new Error("empty answer");
+
+      setStreaming("");
+      setLines((prev) => [...prev, { kind: "out", text: result.text }]);
+
+      if (result.mock) {
+        setLines((prev) => [
+          ...prev,
+          { kind: "sys", text: "mock model · add a key to .env.local to go live" },
+        ]);
+      }
+    } catch {
+      if (!alive.current) return;
+
+      setStreaming("");
+      setLines((prev) => [
+        ...prev,
+        { kind: "sys", text: "machine busy · cached answer" },
+      ]);
+
+      for (const out of responseFor(prompt)) {
+        await wait(240);
+        if (!alive.current) return;
+        setLines((prev) => [...prev, { kind: "out", text: out }]);
+      }
+    } finally {
+      if (alive.current) {
+        setStreaming("");
+        busyRef.current = false;
+        setBusy(false);
+      }
+    }
+  }
+
   function wake() {
     setLines((prev) => [...prev, { kind: "sys", text: "online." }]);
     go("command");
@@ -140,7 +193,7 @@ export function Prologue() {
     }
 
     if (phase === "ask") {
-      await run(text, responseFor(text));
+      await runAsk(text);
       if (!alive.current) return;
       go("ask-done");
     }
@@ -148,8 +201,7 @@ export function Prologue() {
 
   function pickSuggestion(text: string) {
     if (busyRef.current || phase !== "ask") return;
-    setInput(text);
-    void run(text, responseFor(text)).then(() => {
+    void runAsk(text).then(() => {
       if (alive.current) go("ask-done");
     });
   }
@@ -307,6 +359,7 @@ export function Prologue() {
               lines={lines}
               busy={busy}
               idle={phase === "boot"}
+              streaming={streaming}
               className="flex-1"
               footer={
                 showInput ? (

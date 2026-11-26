@@ -6,6 +6,7 @@ import { Terminal, type TLine } from "./Terminal";
 import { PipSprite } from "./PipSprite";
 import { awardOnce } from "@/lib/progress";
 import { useXp } from "@/lib/useProgress";
+import { countWords, parseCommand, streamAi } from "@/lib/ai-client";
 
 type Phase = "first" | "second" | "choose" | "passed";
 
@@ -24,13 +25,14 @@ const ANSWER_A =
 const ANSWER_B =
   "Plants eat sunlight: light goes in, sugar comes out, and oxygen is the leftover.";
 
-const wait = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
-
 export function QuestOne() {
   const [phase, setPhase] = useState<Phase>("first");
   const [lines, setLines] = useState<TLine[]>(START_LINES);
   const [input, setInput] = useState(FIRST_CMD);
   const [busy, setBusy] = useState(false);
+  const [streaming, setStreaming] = useState("");
+  const [answerA, setAnswerA] = useState(ANSWER_A);
+  const [answerB, setAnswerB] = useState(ANSWER_B);
   const xp = useXp();
   const [earned, setEarned] = useState(false);
 
@@ -44,22 +46,52 @@ export function QuestOne() {
     };
   }, []);
 
-  async function run(text: string, outputs: TLine[]) {
-    if (busyRef.current) return;
+  async function ask(text: string, fallback: string): Promise<string | null> {
+    if (busyRef.current) return null;
+
     busyRef.current = true;
     setBusy(true);
     setInput("");
+    setStreaming("");
     setLines((prev) => [...prev, { kind: "in", text }]);
 
-    for (const line of outputs) {
-      await wait(360);
-      if (!alive.current) return;
-      setLines((prev) => [...prev, line]);
-    }
+    const prompt = parseCommand(text);
 
-    if (!alive.current) return;
-    busyRef.current = false;
-    setBusy(false);
+    try {
+      const result = await streamAi(prompt, "quest-1", (chunk) => {
+        if (alive.current) setStreaming((prev) => prev + chunk);
+      });
+
+      if (!alive.current) return null;
+
+      if (result.scopeBlocked) {
+        setStreaming("");
+        setLines((prev) => [...prev, { kind: "sys", text: result.text }]);
+        setInput(text);
+        return null;
+      }
+
+      const answer = result.text.trim() ? result.text : fallback;
+      setStreaming("");
+      setLines((prev) => [...prev, { kind: "out", text: answer }]);
+      return answer;
+    } catch {
+      if (!alive.current) return fallback;
+
+      setStreaming("");
+      setLines((prev) => [
+        ...prev,
+        { kind: "sys", text: "machine busy · cached answer" },
+        { kind: "out", text: fallback },
+      ]);
+      return fallback;
+    } finally {
+      if (alive.current) {
+        setStreaming("");
+        busyRef.current = false;
+        setBusy(false);
+      }
+    }
   }
 
   async function submit() {
@@ -67,16 +99,29 @@ export function QuestOne() {
     if (!text || busyRef.current) return;
 
     if (phase === "first") {
-      await run(text, [{ kind: "out", text: ANSWER_A }]);
-      if (!alive.current) return;
+      const answer = await ask(text, ANSWER_A);
+      if (!alive.current || !answer) return;
+      setAnswerA(answer);
       setPhase("second");
       setInput(SECOND_CMD);
       return;
     }
 
     if (phase === "second") {
-      await run(text, [{ kind: "out", text: ANSWER_B }]);
-      if (!alive.current) return;
+      const answer = await ask(text, ANSWER_B);
+      if (!alive.current || !answer) return;
+      setAnswerB(answer);
+
+      if (countWords(answer) > 35) {
+        setLines((prev) => [
+          ...prev,
+          {
+            kind: "sys",
+            text: "it ignored the length constraint. that's the lesson: check the output.",
+          },
+        ]);
+      }
+
       setPhase("choose");
     }
   }
@@ -230,6 +275,7 @@ export function QuestOne() {
             <Terminal
               lines={lines}
               busy={busy}
+              streaming={streaming}
               className="flex-1"
               footer={
                 <div className="flex flex-col gap-3">
@@ -278,14 +324,14 @@ export function QuestOne() {
                         className="chip"
                         onClick={chooseA}
                       >
-                        A · the first answer
+                        A · the first answer · {countWords(answerA)} words
                       </button>
                       <button
                         type="button"
                         className="chip"
                         onClick={chooseB}
                       >
-                        B · the second answer
+                        B · the second answer · {countWords(answerB)} words
                       </button>
                     </>
                   ) : null}
