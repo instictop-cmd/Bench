@@ -20,8 +20,13 @@ export class ScriptedFlowRuntime implements FlowRuntime {
       const started = Date.now();
       let output = "";
       let degraded = false;
+      let guarded = false;
 
-      if (operation.kind === "transform" && operation.transform) {
+      if (operation.guard) {
+        const result = operation.guard(context);
+        output = result.output;
+        guarded = result.tripped;
+      } else if (operation.kind === "transform" && operation.transform) {
         output = operation.transform(context);
       } else if (operation.serverId && operation.prompt) {
         const prompt = operation.prompt(context);
@@ -46,6 +51,7 @@ export class ScriptedFlowRuntime implements FlowRuntime {
         output,
         ms: Date.now() - started,
         degraded,
+        guarded,
       });
 
       previous = output;

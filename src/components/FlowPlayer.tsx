@@ -400,6 +400,11 @@ export function FlowPlayer({ lesson }: { lesson: FlowLesson }) {
                           reference answer
                         </p>
                       ) : null}
+                      {step.guarded ? (
+                        <p className="termfont mt-1 text-[13px] text-amber">
+                          guard tripped · fallback used
+                        </p>
+                      ) : null}
                     </div>
                   ))}
                 </div>

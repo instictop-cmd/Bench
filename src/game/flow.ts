@@ -6,6 +6,7 @@ export type FlowOperation = {
   serverId?: string;
   prompt?: (context: FlowContext) => string;
   transform?: (context: FlowContext) => string;
+  guard?: (context: FlowContext) => { output: string; tripped: boolean };
   fallback?: string;
 };
 
@@ -34,6 +35,7 @@ export type FlowTraceStep = {
   output: string;
   ms: number;
   degraded?: boolean;
+  guarded?: boolean;
 };
 
 export type FlowTrace = {
@@ -128,6 +130,33 @@ export const FLOW_OPS: Record<string, FlowOperation> = {
         .replace(/\bsource:\s*$/i, "")
         .replace(/\s+/g, " ")
         .trim(),
+  },
+  guard: {
+    id: "guard",
+    label: "Add a guard",
+    hint: "parse it; fall back if it breaks",
+    kind: "transform",
+    guard: ({ previous }) => {
+      try {
+        const parsed = JSON.parse(previous) as { bullets?: unknown };
+        if (Array.isArray(parsed.bullets) && parsed.bullets.length > 0) {
+          return {
+            output: parsed.bullets
+              .filter((item): item is string => typeof item === "string")
+              .join("\n"),
+            tripped: false,
+          };
+        }
+      } catch {
+        // malformed output: fall through to the fallback
+      }
+
+      return {
+        output:
+          "• Plants use sunlight, water, and carbon dioxide.\n• The process is photosynthesis.\n• It releases oxygen.",
+        tripped: true,
+      };
+    },
   },
   explain: {
     id: "explain",
@@ -262,6 +291,26 @@ export const FLOW_LESSONS: FlowLesson[] = [
       id: "trigger-switch",
       name: "Trigger Switch",
       note: "run only when the condition is true",
+    },
+    xp: 15,
+  },
+  {
+    id: "fl-04",
+    order: 4,
+    title: "Fail Gracefully",
+    scene: "the workshop",
+    goal: "One step returns broken JSON. Guard it before the quiz.",
+    inputLabel: "The previous step returned this",
+    inputPlaceholder: '{"topic":"photosynthesis","bullets":[...]}',
+    inputDefault: '{"topic":"photosynthesis","bullets":["Plants use sunlight",',
+    maxInput: 300,
+    operations: ["guard", "summarise", "quiz", "title"],
+    required: ["guard", "quiz"],
+    win: "A guard before the quiz; broken output becomes a usable fallback.",
+    artifact: {
+      id: "guardrail",
+      name: "Guardrail",
+      note: "check the shape before you use it",
     },
     xp: 15,
   },
