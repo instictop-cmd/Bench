@@ -161,7 +161,6 @@ Next up:
 - Ranks 3–6: `flow`, `tool`, `eval`, `deploy`
 - A shared rate limiter (Upstash) and Sentry as soon as the keys exist
 - Auth and synced progress once retention is proven
-- The pending Vercel firewall approval (see [LAUNCH.md](./LAUNCH.md))
 
 ## Status
 

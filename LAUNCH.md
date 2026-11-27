@@ -56,23 +56,22 @@ Set in Vercel → Project → Settings → Environment Variables (Production and
 
 Without Upstash, rate limits are per serverless instance. The Vercel firewall rule is the global backstop.
 
-## One pending manual approval
+## Firewall (live)
 
-A Vercel firewall rate-limit rule is **staged, not live**:
+The Vercel firewall rule is **live**:
 
 > `AI proxy rate limit` — `/api/ai`, 60 requests / 60s per IP, deny for 1m
 
-Vercel requires a human confirmation. Run:
+This is the global backstop behind the app-level session, IP and daily limits.
 
-```bash
-vercel firewall publish --confirm-name bench --effects-digest e92877a5f5f098c9
-```
+## Production verification (27 Nov 2026)
 
-Or open the Vercel dashboard → Firewall → Publish. After publishing, verify:
-
-```bash
-vercel firewall rules list
-```
+- Full run on the production URL: **10/10 quests, 2/2 bosses, 185 XP, 12 artifacts**
+- Both ranks show `rank complete`; campus completion banner appears
+- Security gates: `401` no session, `415` wrong content type, `403` cross-site, moderation refusal
+- Provider failure path: invalid key → authored reference answer → quest still completes
+- CI green on `main`; build, lint and typecheck pass
+- Vercel Web Analytics enabled; firewall rule live
 
 ## Remaining external keys (not blockers)
 

@@ -6,7 +6,7 @@ import { ShareButton } from "./ShareButton";
 import { Signup } from "./Signup";
 import { useProgress } from "@/lib/useProgress";
 import { QUESTS, questsForRank } from "@/game/quests";
-import { bossForRank } from "@/game/bosses";
+import { BOSSES, bossForRank } from "@/game/bosses";
 import { LOCKED_RANKS, RANKS } from "@/game/types";
 
 export function Campus() {
@@ -17,6 +17,9 @@ export function Campus() {
   const completedQuests = QUESTS.filter((quest) =>
     progress.completed.includes(quest.id),
   ).length;
+  const courseDone =
+    completedQuests === QUESTS.length &&
+    BOSSES.every((boss) => progress.completed.includes(boss.id));
 
   return (
     <div className="crt min-h-screen">
@@ -52,6 +55,20 @@ export function Campus() {
               text={`I'm at ${progress.xp} XP on Bench — a pixel lab for learning AI.`}
             />
           </div>
+
+          {courseDone ? (
+            <div className="mt-4 border-2 border-accent bg-accent/10 px-4 py-3">
+              <p className="pxfont text-[9px] tracking-[0.16em] text-accent">
+                COURSE COMPLETE
+              </p>
+              <p className="termfont mt-2 text-[19px] text-ink">
+                Two ranks, ten quests, two trials. You built the habit.
+              </p>
+              <p className="termfont text-[16px] text-dim">
+                The Workshop is next. It unlocks flow.
+              </p>
+            </div>
+          ) : null}
 
           {progress.completed.length === 0 ? (
             <div className="mt-6 flex flex-wrap items-center gap-3 border-2 border-edge2 bg-accent/10 px-4 py-3">
