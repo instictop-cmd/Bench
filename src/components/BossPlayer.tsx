@@ -8,6 +8,7 @@ import { ShareButton } from "./ShareButton";
 import { completeQuest } from "@/lib/progress";
 import { useProgress } from "@/lib/useProgress";
 import type { Boss, BossClaim, BossOption } from "@/game/bosses";
+import { nextRankEntry } from "@/game/course";
 import { RANKS } from "@/game/types";
 
 export function BossPlayer({ boss }: { boss: Boss }) {
@@ -19,6 +20,7 @@ export function BossPlayer({ boss }: { boss: Boss }) {
   const [awarded, setAwarded] = useState(false);
   const progress = useProgress();
   const rank = RANKS.find((item) => item.id === boss.rank);
+  const exit = nextRankEntry(boss.rank);
   const round = boss.rounds[roundIndex];
   const alive = useRef(true);
 
@@ -252,20 +254,10 @@ export function BossPlayer({ boss }: { boss: Boss }) {
                   </div>
                   {passed ? (
                     <Link
-                      href={
-                        boss.rank === "operator"
-                          ? "/quest/an-01"
-                          : boss.rank === "analyst"
-                            ? "/flow/fl-01"
-                            : "/campus"
-                      }
+                      href={exit?.href ?? "/campus"}
                       className="pixel-btn w-full"
                     >
-                      {boss.rank === "operator"
-                        ? "Enter the Archive →"
-                        : boss.rank === "analyst"
-                          ? "Enter the Workshop →"
-                          : "Back to campus"}
+                      {exit?.label ?? "Course complete · back to campus"}
                     </Link>
                   ) : (
                     <button type="button" className="pixel-btn w-full" onClick={retry}>

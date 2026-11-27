@@ -1,4 +1,12 @@
-export type RankId = "operator" | "analyst" | "tinkerer";
+export type RankId =
+  | "operator"
+  | "analyst"
+  | "tinkerer"
+  | "integrator"
+  | "engineer"
+  | "architect";
+
+export type CourseKind = "quest" | "flow" | "tool" | "eval" | "deploy";
 
 export type QuestChoice = {
   id: string;
@@ -40,6 +48,7 @@ export type Rank = {
   name: string;
   zone: string;
   verb: string;
+  kind: CourseKind;
   blurb: string;
 };
 
@@ -49,6 +58,7 @@ export const RANKS: Rank[] = [
     name: "Operator",
     zone: "The Library",
     verb: "ai",
+    kind: "quest",
     blurb: "Command the machine. Add constraints. Learn to hear the difference.",
   },
   {
@@ -56,6 +66,7 @@ export const RANKS: Rank[] = [
     name: "Analyst",
     zone: "The Archive",
     verb: "check",
+    kind: "quest",
     blurb: "Judge the answer. Quote the source. Separate unsupported from false.",
   },
   {
@@ -63,12 +74,38 @@ export const RANKS: Rank[] = [
     name: "Tinkerer",
     zone: "The Workshop",
     verb: "flow",
+    kind: "flow",
     blurb: "Chain steps, carry state, guard against failure.",
+  },
+  {
+    id: "integrator",
+    name: "Integrator",
+    zone: "The Server Room",
+    verb: "tool",
+    kind: "tool",
+    blurb: "Give the model hands. Pick a tool, fill its schema, grant the least access.",
+  },
+  {
+    id: "engineer",
+    name: "Engineer",
+    zone: "The Observatory",
+    verb: "eval",
+    kind: "eval",
+    blurb: "Measure quality. Write cases, read failures, catch regressions, set the gate.",
+  },
+  {
+    id: "architect",
+    name: "Architect",
+    zone: "The Rooftop",
+    verb: "deploy",
+    kind: "deploy",
+    blurb: "Ship and stay calm. Read logs, roll back, gate risk, run the service.",
   },
 ];
 
-export const LOCKED_RANKS = [
-  { name: "Integrator", zone: "The Server Room", verb: "tool" },
-  { name: "Engineer", zone: "The Observatory", verb: "eval" },
-  { name: "Architect", zone: "The Rooftop", verb: "deploy" },
-];
+export const rankById = (id: RankId) => RANKS.find((rank) => rank.id === id);
+
+export const nextRank = (id: RankId) => {
+  const index = RANKS.findIndex((rank) => rank.id === id);
+  return index >= 0 ? RANKS[index + 1] : undefined;
+};

@@ -326,6 +326,316 @@ export const BOSSES: Boss[] = [
       },
     ],
   },
+  {
+    id: "in-boss",
+    rank: "integrator",
+    title: "The Overreach",
+    scene: "the server room",
+    goal: "An agent keeps asking for more access than the task needs. Cut it down.",
+    pass: 2,
+    xp: 50,
+    artifact: {
+      id: "least-privilege-badge",
+      name: "Least-Privilege Badge",
+      note: "grant the smallest scope that still finishes the job",
+    },
+    rounds: [
+      {
+        id: "round-1",
+        title: "Round 1 — one file",
+        prompt:
+          "The task: read notes.md and summarise it. The agent asks for files.readwrite and web.search.",
+        options: [
+          {
+            id: "narrow",
+            label: "Grant files.read only",
+            correct: true,
+            feedback:
+              "Yes. Reading one file needs read access, not write and not the web.",
+          },
+          {
+            id: "broad",
+            label: "Grant files.readwrite and web.search",
+            correct: false,
+            feedback:
+              "No. Two extra powers, neither used by the task. That is overreach.",
+          },
+          {
+            id: "admin",
+            label: "Grant admin forever so it never asks again",
+            correct: false,
+            feedback:
+              "No. Permanent admin turns one task into unlimited risk.",
+          },
+        ],
+      },
+      {
+        id: "round-2",
+        title: "Round 2 — one booking",
+        prompt:
+          "The task: create one 30-minute study block. The agent asks for calendar read, write, delete, and contacts.",
+        options: [
+          {
+            id: "write",
+            label: "Grant calendar.write for this one block",
+            correct: true,
+            feedback:
+              "Yes. One create action needs one write scope, not delete and contacts.",
+          },
+          {
+            id: "read",
+            label: "Grant calendar.read only",
+            correct: false,
+            feedback:
+              "No. Read cannot create the block. The task would fail.",
+          },
+          {
+            id: "all",
+            label: "Grant everything the agent listed",
+            correct: false,
+            feedback:
+              "No. Delete and contacts are unrelated to booking one block.",
+          },
+        ],
+      },
+      {
+        id: "round-3",
+        title: "Round 3 — the daily run",
+        prompt:
+          "A summary must run every morning at 8am with no human present. What do you grant?",
+        options: [
+          {
+            id: "bounded",
+            label:
+              "files.read and web.search, a step budget, a run log, and a weekly review",
+            correct: true,
+            feedback:
+              "Yes. Narrow scopes plus a budget, a log, and a human checkpoint.",
+          },
+          {
+            id: "forever",
+            label: "Admin access with no expiry so it never breaks",
+            correct: false,
+            feedback:
+              "No. Unattended admin access is how small tasks become incidents.",
+          },
+          {
+            id: "cancel",
+            label: "Cancel the task because automation is unsafe",
+            correct: false,
+            feedback:
+              "Too far. Bounded automation is safe; unlimited automation is not.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "en-boss",
+    rank: "engineer",
+    title: "The Gauntlet",
+    scene: "the observatory",
+    goal: "Three release decisions. Choose the one the evidence supports.",
+    pass: 2,
+    xp: 60,
+    artifact: {
+      id: "gate-key",
+      name: "Gate Key",
+      note: "a green suite only ships when the threshold and the budget are met",
+    },
+    rounds: [
+      {
+        id: "round-1",
+        title: "Round 1 — three of four",
+        prompt:
+          "The suite has 4 cases. Your candidate passes 3. The task quotes medical guidance, so the gate is 4/4. What ships?",
+        options: [
+          {
+            id: "block",
+            label: "Block the release and fix the failing case",
+            correct: true,
+            feedback:
+              "Yes. The gate is the gate. A missing case is a known unknown.",
+          },
+          {
+            id: "ship",
+            label: "Ship it and mention the gap in the notes",
+            correct: false,
+            feedback:
+              "No. A note does not protect the person reading medical guidance.",
+          },
+          {
+            id: "delete",
+            label: "Remove the failing case and ship 3/3",
+            correct: false,
+            feedback:
+              "No. Deleting the test deletes the evidence, not the risk.",
+          },
+        ],
+      },
+      {
+        id: "round-2",
+        title: "Round 2 — the regression",
+        prompt:
+          "v2 fixes the case that failed, but breaks case 1, which v1 passed. Both pass 3/4. What ships?",
+        options: [
+          {
+            id: "v1",
+            label: "Keep v1 and fix v2's regression",
+            correct: true,
+            feedback:
+              "Yes. Same score, no new breakage. Never trade a known pass for a known fail.",
+          },
+          {
+            id: "v2",
+            label: "Ship v2 because it fixes the latest bug",
+            correct: false,
+            feedback:
+              "No. A fix that breaks something else is a regression, not progress.",
+          },
+          {
+            id: "both",
+            label: "Ship both and let users choose",
+            correct: false,
+            feedback:
+              "No. Two candidates, same score, double the surface area.",
+          },
+        ],
+      },
+      {
+        id: "round-3",
+        title: "Round 3 — the cost",
+        prompt:
+          "Every case passes, but each run costs 9× the budget. What do you do?",
+        options: [
+          {
+            id: "cut",
+            label: "Cut model calls until it fits the budget and keep the suite green",
+            correct: true,
+            feedback:
+              "Yes. Quality inside the budget is the release condition.",
+          },
+          {
+            id: "ship",
+            label: "Ship it — green means ready",
+            correct: false,
+            feedback:
+              "No. Green on quality can still be red on cost. The gate has two axes.",
+          },
+          {
+            id: "budget",
+            label: "Raise the budget to match the cost",
+            correct: false,
+            feedback:
+              "No. Moving the line is not meeting it. Make the system cheaper first.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ar-boss",
+    rank: "architect",
+    title: "The Outage",
+    scene: "the rooftop",
+    goal: "v3 is down. Restore service, then make sure the next outage is smaller.",
+    pass: 2,
+    xp: 70,
+    artifact: {
+      id: "incident-star",
+      name: "Incident Star",
+      note: "restore first, diagnose second, prevent third",
+    },
+    rounds: [
+      {
+        id: "round-1",
+        title: "Round 1 — the pager",
+        prompt:
+          "v3 went live ten minutes ago. Timeouts and 500s are climbing. What is the first move?",
+        options: [
+          {
+            id: "rollback",
+            label: "Roll back to v2, the last known good version",
+            correct: true,
+            feedback:
+              "Yes. Stop the bleeding first. Diagnose from a stable system.",
+          },
+          {
+            id: "retry",
+            label: "Retry v3 and watch for a few more minutes",
+            correct: false,
+            feedback:
+              "No. Watching a failing release is a decision to keep failing.",
+          },
+          {
+            id: "scale",
+            label: "Add more servers and keep v3 live",
+            correct: false,
+            feedback:
+              "No. More capacity does not fix a bad release. It multiplies it.",
+          },
+        ],
+      },
+      {
+        id: "round-2",
+        title: "Round 2 — the data",
+        prompt:
+          "Rollback restored traffic, but v3 wrote rows in a new shape. What now?",
+        options: [
+          {
+            id: "migrate",
+            label: "Keep v2 live, then migrate with a tested script",
+            correct: true,
+            feedback:
+              "Yes. Stable service first, reversible migration second.",
+          },
+          {
+            id: "live",
+            label: "Fix the schema directly while traffic is live",
+            correct: false,
+            feedback:
+              "No. Live surgery on data turns one outage into two.",
+          },
+          {
+            id: "wait",
+            label: "Wait and see whether the old code can read the new rows",
+            correct: false,
+            feedback:
+              "No. Hope is not a migration plan. Test the read path.",
+          },
+        ],
+      },
+      {
+        id: "round-3",
+        title: "Round 3 — the postmortem",
+        prompt: "The postmortem asks what prevents the next outage. What do you add?",
+        options: [
+          {
+            id: "gates",
+            label:
+              "A canary, an alert on error rate, a runbook, and an approval gate",
+            correct: true,
+            feedback:
+              "Yes. Detect sooner, roll back faster, and gate the risky change.",
+          },
+          {
+            id: "careful",
+            label: "A rule that everyone should be more careful",
+            correct: false,
+            feedback:
+              "No. Care is not a control. It cannot be tested or alerted on.",
+          },
+          {
+            id: "retries",
+            label: "More retries in every service",
+            correct: false,
+            feedback:
+              "No. Retries amplify an outage. They do not prevent one.",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export const bossById = (id: string) => BOSSES.find((boss) => boss.id === id);

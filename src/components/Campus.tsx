@@ -5,43 +5,40 @@ import { LegalLinks } from "./LegalLinks";
 import { ShareButton } from "./ShareButton";
 import { Signup } from "./Signup";
 import { useProgress } from "@/lib/useProgress";
-import { QUESTS, questsForRank } from "@/game/quests";
-import { BOSSES, bossForRank } from "@/game/bosses";
-import { FLOW_LESSONS } from "@/game/flow";
-import { LOCKED_RANKS, RANKS } from "@/game/types";
+import {
+  allCourseItems,
+  completedArtifacts,
+  courseDone,
+  courseForRank,
+  courseTotals,
+  nextCourseItem,
+  rankBoss,
+  rankComplete,
+  rankUnlocked,
+  unlockReason,
+} from "@/game/course";
+import { RANKS } from "@/game/types";
 
 export function Campus() {
   const progress = useProgress();
-  const artifacts = [
-    ...QUESTS.filter((quest) =>
-      progress.artifacts.includes(quest.artifact.id),
-    ).map((quest) => quest.artifact),
-    ...FLOW_LESSONS.filter((lesson) =>
-      progress.artifacts.includes(lesson.artifact.id),
-    ).map((lesson) => lesson.artifact),
-    ...BOSSES.filter((boss) =>
-      progress.artifacts.includes(boss.artifact.id),
-    ).map((boss) => boss.artifact),
-  ];
-  const completedQuests = QUESTS.filter((quest) =>
-    progress.completed.includes(quest.id),
+  const artifacts = completedArtifacts(progress.completed);
+  const totals = courseTotals();
+  const completedItems = allCourseItems().filter((item) =>
+    progress.completed.includes(item.id),
   ).length;
-  const flowDone = FLOW_LESSONS.filter((lesson) =>
-    progress.completed.includes(lesson.id),
-  ).length;
-  const totalItems = QUESTS.length + FLOW_LESSONS.length;
-  const completedItems = completedQuests + flowDone;
-  const coreBosses = BOSSES.filter((boss) => boss.rank !== "tinkerer");
-  const courseDone =
-    completedQuests === QUESTS.length &&
-    coreBosses.every((boss) => progress.completed.includes(boss.id));
-  const workshopRank = RANKS.find((rank) => rank.id === "tinkerer");
-  const workshopBoss = bossForRank("tinkerer");
-  const workshopBossDone = workshopBoss
-    ? progress.completed.includes(workshopBoss.id)
-    : false;
-  const workshopUnlocked = flowDone === FLOW_LESSONS.length;
-  const workshopComplete = workshopUnlocked && workshopBossDone;
+  const bossesDone = RANKS.filter((rank) => {
+    const boss = rankBoss(rank.id);
+    return boss ? progress.completed.includes(boss.id) : false;
+  }).length;
+  const allDone = courseDone(progress.completed);
+  const coreDone = RANKS.slice(0, 2).every((rank) =>
+    rankComplete(rank.id, progress.completed),
+  );
+  const openRank = RANKS.map((rank) => ({
+    rank,
+    unlocked: rankUnlocked(rank.id, progress.completed),
+    complete: rankComplete(rank.id, progress.completed),
+  })).find((entry) => entry.unlocked && !entry.complete);
 
   return (
     <div className="crt min-h-screen">
@@ -67,8 +64,8 @@ export function Campus() {
             THE CAMPUS
           </h1>
           <p className="termfont mt-3 max-w-2xl text-[20px] leading-[1.35] text-dim">
-            Two rooms and the Workshop are open. Finish the core ranks, then
-            keep building. Everything you make lands in your notebook.
+            Six rooms, one course. Start in the Library and finish on the
+            Rooftop. Every lesson adds something to your notebook.
           </p>
 
           <div className="mt-4 max-w-xs">
@@ -78,20 +75,41 @@ export function Campus() {
             />
           </div>
 
-          {courseDone ? (
+          {allDone ? (
+            <div className="mt-4 border-2 border-accent bg-accent/10 px-4 py-3">
+              <p className="pxfont text-[9px] tracking-[0.16em] text-accent">
+                COURSE COMPLETE
+              </p>
+              <p className="termfont mt-2 text-[19px] text-ink">
+                Six ranks, {totals.lessons} lessons, {totals.bosses} trials.
+                You can build, measure, and ship.
+              </p>
+              <Link
+                href="/play"
+                className="termfont mt-1 inline-block text-[16px] text-amber underline decoration-amber/40 underline-offset-4 hover:text-ink"
+              >
+                Replay the prologue →
+              </Link>
+            </div>
+          ) : coreDone ? (
             <div className="mt-4 border-2 border-accent bg-accent/10 px-4 py-3">
               <p className="pxfont text-[9px] tracking-[0.16em] text-accent">
                 CORE COURSE COMPLETE
               </p>
               <p className="termfont mt-2 text-[19px] text-ink">
-                Two ranks, ten quests, two trials. The Workshop is open.
+                Two ranks down. Four rooms to go.
               </p>
-              <Link
-                href="/flow/fl-01"
-                className="termfont mt-1 inline-block text-[16px] text-amber underline decoration-amber/40 underline-offset-4 hover:text-ink"
-              >
-                Enter the Workshop →
-              </Link>
+              {openRank ? (
+                <Link
+                  href={
+                    nextCourseItem(openRank.rank.id, progress.completed)
+                      ?.href ?? "/campus"
+                  }
+                  className="termfont mt-1 inline-block text-[16px] text-amber underline decoration-amber/40 underline-offset-4 hover:text-ink"
+                >
+                  Enter {openRank.rank.zone} →
+                </Link>
+              ) : null}
             </div>
           ) : null}
 
@@ -107,25 +125,27 @@ export function Campus() {
           ) : null}
 
           <div className="mt-8 grid gap-4 lg:grid-cols-2">
-            {RANKS.filter((rank) => rank.id !== "tinkerer").map((rank) => {
-              const quests = questsForRank(rank.id);
-              const done = quests.filter((quest) =>
-                progress.completed.includes(quest.id),
+            {RANKS.map((rank) => {
+              const items = courseForRank(rank.id);
+              const done = items.filter((item) =>
+                progress.completed.includes(item.id),
               ).length;
-              const nextQuest = quests.find(
-                (quest) => !progress.completed.includes(quest.id),
-              );
-              const boss = bossForRank(rank.id);
+              const next = nextCourseItem(rank.id, progress.completed);
+              const boss = rankBoss(rank.id);
               const bossDone = boss
                 ? progress.completed.includes(boss.id)
                 : false;
-              const bossUnlocked = done === quests.length;
-              const rankComplete = bossUnlocked && bossDone;
+              const bossUnlocked = items.length > 0 && done === items.length;
+              const unlocked = rankUnlocked(rank.id, progress.completed);
+              const complete = rankComplete(rank.id, progress.completed);
+              const reason = unlockReason(rank.id);
 
               return (
                 <section
                   key={rank.id}
-                  className="pixel-panel pixel-panel--lit relative overflow-hidden"
+                  className={`pixel-panel relative overflow-hidden ${
+                    unlocked ? "pixel-panel--lit" : "opacity-60"
+                  }`}
                 >
                   <div className="scene-grid pointer-events-none absolute inset-0 opacity-30" />
                   <div className="relative flex flex-col gap-4 p-4 sm:p-5">
@@ -144,43 +164,61 @@ export function Campus() {
                       </span>
                     </div>
 
+                    {!unlocked ? (
+                      <p className="termfont border-2 border-edge/60 bg-black/10 px-3 py-2 text-[15px] text-edge2">
+                        locked · {reason}
+                      </p>
+                    ) : null}
+
                     <div className="hairline" />
 
                     <ol className="flex flex-col gap-2">
-                      {quests.map((quest) => {
-                        const complete = progress.completed.includes(quest.id);
-                        const isNext = nextQuest?.id === quest.id;
+                      {items.map((item) => {
+                        const itemDone = progress.completed.includes(item.id);
+                        const isNext = next?.id === item.id;
+
+                        const body = (
+                          <>
+                            <span className="flex items-center gap-3">
+                              <span
+                                className={`grid h-6 w-6 place-items-center border-2 pxfont text-[8px] ${
+                                  itemDone
+                                    ? "border-accent bg-accent text-[#04140d]"
+                                    : "border-edge text-edge2"
+                                }`}
+                              >
+                                {itemDone ? "✓" : item.order}
+                              </span>
+                              <span className="termfont text-[18px] text-ink">
+                                {item.title}
+                              </span>
+                            </span>
+                            <span className="termfont text-[14px] text-dim">
+                              +{item.xp} xp
+                            </span>
+                          </>
+                        );
 
                         return (
-                          <li key={quest.id}>
-                            <Link
-                              href={`/quest/${quest.id}`}
-                              className={`flex items-center justify-between gap-3 border-2 px-3 py-2 transition-colors ${
-                                complete
-                                  ? "border-edge bg-accent/5"
-                                  : isNext
-                                    ? "border-edge2 bg-black/20 hover:border-accent"
-                                    : "border-edge bg-black/10 hover:border-edge2"
-                              }`}
-                            >
-                              <span className="flex items-center gap-3">
-                                <span
-                                  className={`grid h-6 w-6 place-items-center border-2 pxfont text-[8px] ${
-                                    complete
-                                      ? "border-accent bg-accent text-[#04140d]"
-                                      : "border-edge text-edge2"
-                                  }`}
-                                >
-                                  {complete ? "✓" : quest.order}
-                                </span>
-                                <span className="termfont text-[18px] text-ink">
-                                  {quest.title}
-                                </span>
-                              </span>
-                              <span className="termfont text-[14px] text-dim">
-                                +{quest.xp} xp
-                              </span>
-                            </Link>
+                          <li key={item.id}>
+                            {unlocked ? (
+                              <Link
+                                href={item.href}
+                                className={`flex items-center justify-between gap-3 border-2 px-3 py-2 transition-colors ${
+                                  itemDone
+                                    ? "border-edge bg-accent/5"
+                                    : isNext
+                                      ? "border-edge2 bg-black/20 hover:border-accent"
+                                      : "border-edge bg-black/10 hover:border-edge2"
+                                }`}
+                              >
+                                {body}
+                              </Link>
+                            ) : (
+                              <div className="flex items-center justify-between gap-3 border-2 border-edge/60 bg-black/10 px-3 py-2">
+                                {body}
+                              </div>
+                            )}
                           </li>
                         );
                       })}
@@ -191,9 +229,9 @@ export function Campus() {
                         className={`border-2 px-3 py-2 ${
                           bossDone
                             ? "border-accent bg-accent/10"
-                            : bossUnlocked
+                            : bossUnlocked && unlocked
                               ? "border-edge2 bg-black/20"
-                              : "border-edge/60 bg-black/10 opacity-60"
+                              : "border-edge/60 bg-black/10 opacity-70"
                         }`}
                       >
                         {bossDone ? (
@@ -205,7 +243,7 @@ export function Campus() {
                               ✓
                             </span>
                           </div>
-                        ) : bossUnlocked ? (
+                        ) : bossUnlocked && unlocked ? (
                           <Link
                             href={`/boss/${boss.id}`}
                             className="flex items-center justify-between gap-3"
@@ -223,7 +261,9 @@ export function Campus() {
                               boss trial · {boss.title}
                             </span>
                             <span className="termfont text-[14px] text-edge2">
-                              {quests.length - done} quests left
+                              {unlocked
+                                ? `${items.length - done} lessons left`
+                                : "locked"}
                             </span>
                           </div>
                         )}
@@ -232,11 +272,15 @@ export function Campus() {
 
                     <div className="mt-auto flex items-center justify-between gap-3">
                       <span className="termfont text-[15px] text-dim">
-                        {done} / {quests.length} complete
+                        {done} / {items.length} complete
                       </span>
-                      {nextQuest ? (
+                      {!unlocked ? (
+                        <span className="termfont text-[15px] text-edge2">
+                          locked
+                        </span>
+                      ) : next ? (
                         <Link
-                          href={`/quest/${nextQuest.id}`}
+                          href={next.href}
                           className="termfont text-[15px] text-amber underline decoration-amber/40 underline-offset-4 hover:text-ink"
                         >
                           continue →
@@ -248,7 +292,7 @@ export function Campus() {
                         >
                           boss trial →
                         </Link>
-                      ) : rankComplete ? (
+                      ) : complete ? (
                         <span className="termfont text-[15px] text-accent">
                           rank complete
                         </span>
@@ -261,115 +305,11 @@ export function Campus() {
           </div>
 
           <section className="mt-8">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="kicker">the workshop</p>
-                <h2 className="pxfont mt-3 text-[15px] text-ink">
-                  {workshopRank?.name} · {workshopRank?.verb}
-                </h2>
-                <p className="termfont mt-1 max-w-2xl text-[17px] text-dim">
-                  Chain steps, carry a variable, handle a failure. No code.
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="border-2 border-edge px-2 py-1 termfont text-[15px] text-amber">
-                  flow
-                </span>
-                <span className="termfont text-[15px] text-dim">
-                  {flowDone} / {FLOW_LESSONS.length}
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-3 flex flex-col gap-2">
-              {FLOW_LESSONS.map((lesson) => {
-                const complete = progress.completed.includes(lesson.id);
-
-                return (
-                  <Link
-                    key={lesson.id}
-                    href={`/flow/${lesson.id}`}
-                    className={`flex items-center justify-between gap-3 border-2 px-3 py-2 transition-colors ${
-                      complete
-                        ? "border-edge bg-accent/5"
-                        : "border-edge2 bg-black/20 hover:border-accent"
-                    }`}
-                  >
-                    <span className="flex items-center gap-3">
-                      <span
-                        className={`grid h-6 w-6 place-items-center border-2 pxfont text-[8px] ${
-                          complete
-                            ? "border-accent bg-accent text-[#04140d]"
-                            : "border-edge text-edge2"
-                        }`}
-                      >
-                        {complete ? "✓" : lesson.order}
-                      </span>
-                      <span className="termfont text-[18px] text-ink">
-                        {lesson.title}
-                      </span>
-                    </span>
-                    <span className="termfont text-[14px] text-dim">
-                      +{lesson.xp} xp
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-            {workshopBoss ? (
-              <div
-                className={`mt-2 border-2 px-3 py-2 ${
-                  workshopBossDone
-                    ? "border-accent bg-accent/10"
-                    : workshopUnlocked
-                      ? "border-edge2 bg-black/20"
-                      : "border-edge/60 bg-black/10 opacity-60"
-                }`}
-              >
-                {workshopBossDone ? (
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="termfont text-[16px] text-accent">
-                      boss passed · {workshopBoss.title}
-                    </span>
-                    <span className="pxfont text-[8px] text-accent">✓</span>
-                  </div>
-                ) : workshopUnlocked ? (
-                  <Link
-                    href={`/boss/${workshopBoss.id}`}
-                    className="flex items-center justify-between gap-3"
-                  >
-                    <span className="termfont text-[16px] text-ink">
-                      boss trial · {workshopBoss.title}
-                    </span>
-                    <span className="termfont text-[15px] text-amber">
-                      enter →
-                    </span>
-                  </Link>
-                ) : (
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="termfont text-[16px] text-dim">
-                      boss trial · {workshopBoss.title}
-                    </span>
-                    <span className="termfont text-[14px] text-edge2">
-                      {FLOW_LESSONS.length - flowDone} lessons left
-                    </span>
-                  </div>
-                )}
-              </div>
-            ) : null}
-            <p className="termfont mt-2 text-[15px] text-edge2">
-              {workshopComplete
-                ? "Workshop complete · rank up."
-                : "The Runaway is the last trial."}
-            </p>
-          </section>
-
-          <section className="mt-8">
             <p className="kicker">notebook</p>
             <h2 className="pxfont mt-3 text-[13px] text-ink">What you keep</h2>
             {artifacts.length === 0 ? (
               <p className="termfont mt-2 text-[17px] text-dim">
-                Empty. Every quest adds one reusable tool.
+                Empty. Every lesson adds one reusable tool.
               </p>
             ) : (
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -393,7 +333,7 @@ export function Campus() {
           <section className="mt-8">
             <p className="kicker">stay in the loop</p>
             <h2 className="pxfont mt-3 text-[13px] text-ink">
-              One new quest a week
+              One new lesson a week
             </h2>
             <p className="termfont mt-2 text-[17px] text-dim">
               No spam. No account. Leave whenever.
@@ -402,32 +342,13 @@ export function Campus() {
               <Signup />
             </div>
           </section>
-
-          <section className="mt-8">
-            <p className="kicker">still dark</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {LOCKED_RANKS.map((rank) => (
-                <div
-                  key={rank.name}
-                  className="border-2 border-edge/60 bg-black/10 px-3 py-3 opacity-60"
-                >
-                  <p className="pxfont text-[9px] text-edge2">{rank.name}</p>
-                  <p className="termfont mt-1 text-[16px] text-dim">
-                    {rank.zone}
-                  </p>
-                  <p className="termfont text-[15px] text-edge2">
-                    unlocks {rank.verb}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
         </main>
 
         <footer className="flex flex-col gap-2 border-t-2 border-edge/60 pt-3">
           <div className="flex items-center justify-between gap-4">
             <span className="termfont text-[14px] text-edge2">
-              {completedItems} of {totalItems} lessons complete
+              {completedItems} of {totals.lessons} lessons complete ·{" "}
+              {bossesDone} of {totals.bosses} bosses
             </span>
             <Link
               href="/"
