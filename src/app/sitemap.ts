@@ -18,6 +18,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/flow/fl-02", priority: 0.7, changeFrequency: "monthly" as const },
     { path: "/flow/fl-03", priority: 0.7, changeFrequency: "monthly" as const },
     { path: "/flow/fl-04", priority: 0.7, changeFrequency: "monthly" as const },
+    { path: "/flow/fl-05", priority: 0.7, changeFrequency: "monthly" as const },
+    { path: "/boss/ru-boss", priority: 0.6, changeFrequency: "monthly" as const },
     { path: "/privacy", priority: 0.2, changeFrequency: "yearly" as const },
     { path: "/terms", priority: 0.2, changeFrequency: "yearly" as const },
   ].map(({ path, priority, changeFrequency }) => ({

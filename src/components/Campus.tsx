@@ -28,9 +28,17 @@ export function Campus() {
   ).length;
   const totalItems = QUESTS.length + FLOW_LESSONS.length;
   const completedItems = completedQuests + flowDone;
+  const coreBosses = BOSSES.filter((boss) => boss.rank !== "tinkerer");
   const courseDone =
     completedQuests === QUESTS.length &&
-    BOSSES.every((boss) => progress.completed.includes(boss.id));
+    coreBosses.every((boss) => progress.completed.includes(boss.id));
+  const workshopRank = RANKS.find((rank) => rank.id === "tinkerer");
+  const workshopBoss = bossForRank("tinkerer");
+  const workshopBossDone = workshopBoss
+    ? progress.completed.includes(workshopBoss.id)
+    : false;
+  const workshopUnlocked = flowDone === FLOW_LESSONS.length;
+  const workshopComplete = workshopUnlocked && workshopBossDone;
 
   return (
     <div className="crt min-h-screen">
@@ -96,7 +104,7 @@ export function Campus() {
           ) : null}
 
           <div className="mt-8 grid gap-4 lg:grid-cols-2">
-            {RANKS.map((rank) => {
+            {RANKS.filter((rank) => rank.id !== "tinkerer").map((rank) => {
               const quests = questsForRank(rank.id);
               const done = quests.filter((quest) =>
                 progress.completed.includes(quest.id),
@@ -254,7 +262,7 @@ export function Campus() {
               <div>
                 <p className="kicker">the workshop</p>
                 <h2 className="pxfont mt-3 text-[15px] text-ink">
-                  Tinkerer · flow
+                  {workshopRank?.name} · {workshopRank?.verb}
                 </h2>
                 <p className="termfont mt-1 max-w-2xl text-[17px] text-dim">
                   Chain steps, carry a variable, handle a failure. No code.
@@ -305,8 +313,51 @@ export function Campus() {
                 );
               })}
             </div>
+            {workshopBoss ? (
+              <div
+                className={`mt-2 border-2 px-3 py-2 ${
+                  workshopBossDone
+                    ? "border-accent bg-accent/10"
+                    : workshopUnlocked
+                      ? "border-edge2 bg-black/20"
+                      : "border-edge/60 bg-black/10 opacity-60"
+                }`}
+              >
+                {workshopBossDone ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="termfont text-[16px] text-accent">
+                      boss passed · {workshopBoss.title}
+                    </span>
+                    <span className="pxfont text-[8px] text-accent">✓</span>
+                  </div>
+                ) : workshopUnlocked ? (
+                  <Link
+                    href={`/boss/${workshopBoss.id}`}
+                    className="flex items-center justify-between gap-3"
+                  >
+                    <span className="termfont text-[16px] text-ink">
+                      boss trial · {workshopBoss.title}
+                    </span>
+                    <span className="termfont text-[15px] text-amber">
+                      enter →
+                    </span>
+                  </Link>
+                ) : (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="termfont text-[16px] text-dim">
+                      boss trial · {workshopBoss.title}
+                    </span>
+                    <span className="termfont text-[14px] text-edge2">
+                      {FLOW_LESSONS.length - flowDone} lessons left
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : null}
             <p className="termfont mt-2 text-[15px] text-edge2">
-              1 more flow quest and The Runaway are in the next drop.
+              {workshopComplete
+                ? "Workshop complete · rank up."
+                : "The Runaway is the last trial."}
             </p>
           </section>
 

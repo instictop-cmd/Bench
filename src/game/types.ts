@@ -1,4 +1,4 @@
-export type RankId = "operator" | "analyst";
+export type RankId = "operator" | "analyst" | "tinkerer";
 
 export type QuestChoice = {
   id: string;
@@ -57,6 +57,13 @@ export const RANKS: Rank[] = [
     zone: "The Archive",
     verb: "check",
     blurb: "Judge the answer. Quote the source. Separate unsupported from false.",
+  },
+  {
+    id: "tinkerer",
+    name: "Tinkerer",
+    zone: "The Workshop",
+    verb: "flow",
+    blurb: "Chain steps, carry state, guard against failure.",
   },
 ];
 

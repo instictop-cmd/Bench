@@ -82,6 +82,7 @@ export type FlowLesson = {
   maxInput: number;
   variables?: FlowVariable[];
   trigger?: FlowTrigger;
+  maxModelSteps?: number;
   operations: string[];
   required: string[];
   win: string;
@@ -314,6 +315,35 @@ export const FLOW_LESSONS: FlowLesson[] = [
     },
     xp: 15,
   },
+  {
+    id: "fl-05",
+    order: 5,
+    title: "The Daily Flow",
+    scene: "the workshop",
+    goal: "Build a four-step routine that stays inside a two-call budget.",
+    inputLabel: "What do you want to study?",
+    inputPlaceholder: "photosynthesis",
+    inputDefault: "photosynthesis",
+    maxInput: 80,
+    variables: [
+      {
+        key: "topic",
+        label: "Topic variable",
+        placeholder: "photosynthesis",
+        default: "photosynthesis",
+      },
+    ],
+    maxModelSteps: 2,
+    operations: ["set-topic", "explain", "quiz-topic", "schedule", "summarise"],
+    required: ["set-topic", "explain", "quiz-topic", "schedule"],
+    win: "Four steps, two model calls, one reusable routine.",
+    artifact: {
+      id: "routine",
+      name: "Routine",
+      note: "set it up once; run it daily",
+    },
+    xp: 20,
+  },
 ];
 
 export const flowLessonById = (id: string) =>
@@ -341,6 +371,16 @@ export function validateFlow(
     if (!option.correct) return "that trigger is too broad for this lesson.";
     if (!test || !test(input)) {
       return "this input does not match the trigger. add a link.";
+    }
+  }
+
+  if (lesson.maxModelSteps !== undefined) {
+    const modelCalls = spec.steps.filter(
+      (step) => FLOW_OPS[step.operationId]?.kind === "model",
+    ).length;
+
+    if (modelCalls > lesson.maxModelSteps) {
+      return `this flow uses ${modelCalls} model calls; the budget is ${lesson.maxModelSteps}.`;
     }
   }
 

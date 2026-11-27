@@ -38,6 +38,9 @@ export function FlowPlayer({ lesson }: { lesson: FlowLesson }) {
   const [awarded, setAwarded] = useState(false);
 
   const used = new Set(built.map((step) => step.operationId));
+  const modelCalls = built.filter(
+    (step) => FLOW_OPS[step.operationId]?.kind === "model",
+  ).length;
   const palette = lesson.operations.flatMap((id) => {
     const operation = FLOW_OPS[id];
     return operation ? [operation] : [];
@@ -157,6 +160,17 @@ export function FlowPlayer({ lesson }: { lesson: FlowLesson }) {
                 <p className="termfont mt-3 text-[19px] leading-[1.35] text-dim">
                   {lesson.goal}
                 </p>
+                {lesson.maxModelSteps !== undefined ? (
+                  <p
+                    className={`termfont mt-2 text-[15px] ${
+                      modelCalls > lesson.maxModelSteps
+                        ? "text-red"
+                        : "text-amber"
+                    }`}
+                  >
+                    budget · {modelCalls} / {lesson.maxModelSteps} model calls
+                  </p>
+                ) : null}
                 {alreadyDone && !done ? (
                   <p className="termfont mt-2 text-[15px] text-amber">
                     completed · replaying will not add xp
