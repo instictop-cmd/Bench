@@ -69,6 +69,8 @@ This is the global backstop behind the app-level session, IP and daily limits. 1
 
 - Full run on the production URL: **10/10 quests, 2/2 bosses, 185 XP, 12 artifacts**
 - Both ranks show `rank complete`; campus completion banner appears
+- **Workshop:** `fl-01` and `fl-02` completed on production; **215 XP, 14 artifacts, Workshop 2/2, 12/12 lessons**
+- Flow path: build a flow, run it with real model output, validate order, save the artifact; invalid order is rejected with a hint; provider failure uses the authored fallback
 - Security gates: `401` no session, `415` wrong content type, `403` cross-site, moderation refusal
 - Provider failure path: invalid key → authored reference answer → quest still completes
 - CI green on `main`; build, lint and typecheck pass
