@@ -19,6 +19,9 @@ export function Campus() {
     ...FLOW_LESSONS.filter((lesson) =>
       progress.artifacts.includes(lesson.artifact.id),
     ).map((lesson) => lesson.artifact),
+    ...BOSSES.filter((boss) =>
+      progress.artifacts.includes(boss.artifact.id),
+    ).map((boss) => boss.artifact),
   ];
   const completedQuests = QUESTS.filter((quest) =>
     progress.completed.includes(quest.id),
