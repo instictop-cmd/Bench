@@ -6,7 +6,7 @@ Repo: **https://github.com/instictop-cmd/Bench** (private)
 ## What is in the product
 
 - Prologue, 10 quests across two ranks, two deterministic boss trials
-- Workshop: two `flow` lessons (Chain Two Steps, Carry a Variable) with a scripted FlowRuntime, run log and deterministic validation
+- Workshop: three `flow` lessons (Chain Two Steps, Carry a Variable, Add a Trigger) with a scripted FlowRuntime, trigger conditions, run log and deterministic validation
 - Real model calls through Agnes 3.0 Flash, streamed, scoped per quest
 - Signed session cookie, origin + JSON checks, moderation, per-session/IP/hour limits, daily cap, prompt cache, provider fallback
 - Campus map, XP, notebook artifacts, share button, optional email capture
@@ -69,8 +69,8 @@ This is the global backstop behind the app-level session, IP and daily limits. 1
 
 - Full run on the production URL: **10/10 quests, 2/2 bosses, 185 XP, 12 artifacts**
 - Both ranks show `rank complete`; campus completion banner appears
-- **Workshop:** `fl-01` and `fl-02` completed on production; **215 XP, 14 artifacts, Workshop 2/2, 12/12 lessons**
-- Flow path: build a flow, run it with real model output, validate order, save the artifact; invalid order is rejected with a hint; provider failure uses the authored fallback
+- **Workshop:** `fl-01`, `fl-02` and `fl-03` completed on production; **230 XP, 15 artifacts, Workshop 3/3, 13/13 lessons**
+- Flow path: build a flow, run it with real model output, validate order and trigger, save the artifact; invalid order/trigger is rejected with a hint; provider refusal or failure uses the authored fallback; refusals are never cached
 - Security gates: `401` no session, `415` wrong content type, `403` cross-site, moderation refusal
 - Provider failure path: invalid key → authored reference answer → quest still completes
 - CI green on `main`; build, lint and typecheck pass
