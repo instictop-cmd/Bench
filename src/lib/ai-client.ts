@@ -10,6 +10,7 @@ export class AiClientError extends Error {
   constructor(
     public status: number,
     message: string,
+    public body = "",
   ) {
     super(message);
     this.name = "AiClientError";
@@ -34,7 +35,8 @@ export async function streamAi(
   });
 
   if (!res.ok) {
-    throw new AiClientError(res.status, `ai ${res.status}`);
+    const body = await res.text().catch(() => "");
+    throw new AiClientError(res.status, `ai ${res.status}`, body);
   }
 
   const scopeBlocked = res.headers.get("x-bench-scope") === "blocked";

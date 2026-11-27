@@ -195,7 +195,10 @@ export async function POST(req: NextRequest) {
       status,
       error instanceof Error ? error.message : String(error),
     );
-    return text("machine unavailable", 502, { "x-bench-error": "provider" });
+    return text(config.fallback, 502, {
+      "x-bench-error": "provider",
+      "x-bench-degraded": "1",
+    });
   }
 
   const encoder = new TextEncoder();

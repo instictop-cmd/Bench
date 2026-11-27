@@ -8,6 +8,7 @@ import { LegalLinks } from "./LegalLinks";
 import { completeQuest } from "@/lib/progress";
 import { useProgress } from "@/lib/useProgress";
 import {
+  AiClientError,
   countWords,
   friendlyAiError,
   parseCommand,
@@ -110,6 +111,26 @@ export function QuestPlayer({ quest }: { quest: Quest }) {
       advance(stepIndex + 1);
     } catch (error) {
       if (!alive.current) return;
+
+      if (
+        error instanceof AiClientError &&
+        error.status === 502 &&
+        error.body.trim()
+      ) {
+        const answer = error.body.trim();
+        setStreaming("");
+        setLines((prev) => [
+          ...prev,
+          { kind: "sys", text: "machine unavailable · reference answer" },
+          { kind: "out", text: answer },
+        ]);
+        setPrevious(answer);
+        setAnswers((prev) => [...prev, answer]);
+        track("ai_error", { status: "fallback" });
+        advance(stepIndex + 1);
+        return;
+      }
+
       track("ai_error", {
         status: error instanceof Error ? error.message : "unknown",
       });
