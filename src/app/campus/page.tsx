@@ -4,7 +4,7 @@ import { Campus } from "@/components/Campus";
 export const metadata: Metadata = {
   title: "Campus",
   description:
-    "Your Bench campus: six ranks, thirty lessons, six boss trials, and the notebook you fill as you learn.",
+    "Your Bench campus: nine ranks, forty-five lessons, nine boss trials, two studios, and the notebook you fill as you learn.",
   alternates: { canonical: "/campus" },
 };
 

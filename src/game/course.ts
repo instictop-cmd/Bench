@@ -1,14 +1,18 @@
 import { BOSSES, bossForRank } from "./bosses";
+import { CONNECT_LESSONS } from "./connect";
 import { DEPLOY_LESSONS } from "./deploy";
 import { EVAL_LESSONS } from "./eval";
 import { FLOW_LESSONS } from "./flow";
+import { PILOT_LESSONS } from "./pilot";
 import { QUESTS } from "./quests";
+import { REQUEST_LESSONS } from "./request";
+import { STUDIOS, type Studio, type StudioTrack } from "./studio";
 import { TOOL_LESSONS } from "./tool";
 import { RANKS, type CourseKind, type RankId } from "./types";
 
 export type CourseItem = {
   id: string;
-  rank: RankId;
+  rank?: RankId;
   kind: CourseKind;
   order: number;
   title: string;
@@ -17,12 +21,20 @@ export type CourseItem = {
   artifact: { id: string; name: string; note: string };
 };
 
+export type StudioItem = CourseItem & {
+  track: StudioTrack;
+  studio: Studio;
+};
+
 const hrefFor = (kind: CourseKind, id: string) => {
   if (kind === "quest") return `/quest/${id}`;
   if (kind === "flow") return `/flow/${id}`;
   if (kind === "tool") return `/tool/${id}`;
   if (kind === "eval") return `/eval/${id}`;
-  return `/deploy/${id}`;
+  if (kind === "deploy") return `/deploy/${id}`;
+  if (kind === "connect") return `/connect/${id}`;
+  if (kind === "request") return `/request/${id}`;
+  return `/pilot/${id}`;
 };
 
 function questItems(rank: RankId): CourseItem[] {
@@ -83,7 +95,49 @@ const COURSE: Record<RankId, CourseItem[]> = {
     href: hrefFor("deploy", lesson.id),
     artifact: lesson.artifact,
   })),
+  connector: CONNECT_LESSONS.map((lesson) => ({
+    id: lesson.id,
+    rank: "connector" as const,
+    kind: "connect" as const,
+    order: lesson.order,
+    title: lesson.title,
+    xp: lesson.xp,
+    href: hrefFor("connect", lesson.id),
+    artifact: lesson.artifact,
+  })),
+  caller: REQUEST_LESSONS.map((lesson) => ({
+    id: lesson.id,
+    rank: "caller" as const,
+    kind: "request" as const,
+    order: lesson.order,
+    title: lesson.title,
+    xp: lesson.xp,
+    href: hrefFor("request", lesson.id),
+    artifact: lesson.artifact,
+  })),
+  pilot: PILOT_LESSONS.map((lesson) => ({
+    id: lesson.id,
+    rank: "pilot" as const,
+    kind: "operate" as const,
+    order: lesson.order,
+    title: lesson.title,
+    xp: lesson.xp,
+    href: hrefFor("operate", lesson.id),
+    artifact: lesson.artifact,
+  })),
 };
+
+const STUDIO_ITEMS: StudioItem[] = STUDIOS.map((studio) => ({
+  id: studio.id,
+  kind: "studio" as const,
+  order: studio.track === "operator" ? 1 : 2,
+  title: studio.title,
+  xp: studio.xp,
+  href: studio.href,
+  artifact: studio.artifact,
+  track: studio.track,
+  studio,
+}));
 
 export function courseForRank(rank: RankId): CourseItem[] {
   return COURSE[rank] ?? [];
@@ -91,6 +145,30 @@ export function courseForRank(rank: RankId): CourseItem[] {
 
 export function allCourseItems(): CourseItem[] {
   return RANKS.flatMap((rank) => courseForRank(rank.id));
+}
+
+export function allStudioItems(): StudioItem[] {
+  return STUDIO_ITEMS;
+}
+
+export function studioForTrackItem(track: StudioTrack): StudioItem | undefined {
+  return STUDIO_ITEMS.find((item) => item.track === track);
+}
+
+export function studioUnlocked(
+  track: StudioTrack,
+  completed: string[],
+): boolean {
+  if (track === "operator") return rankComplete("caller", completed);
+  return rankComplete("pilot", completed);
+}
+
+export function studioComplete(
+  track: StudioTrack,
+  completed: string[],
+): boolean {
+  const studio = STUDIOS.find((item) => item.track === track);
+  return studio ? completed.includes(studio.id) : false;
 }
 
 export function rankBoss(rank: RankId) {
@@ -132,31 +210,52 @@ export function completedArtifacts(completed: string[]) {
     .filter((item) => completed.includes(item.id))
     .map((item) => item.artifact);
 
+  const studioArtifacts = STUDIO_ITEMS.filter((item) =>
+    completed.includes(item.id),
+  ).map((item) => item.artifact);
+
   const bossArtifacts = BOSSES.filter((boss) =>
     completed.includes(boss.id),
   ).map((boss) => boss.artifact);
 
-  return [...itemArtifacts, ...bossArtifacts];
+  return [...itemArtifacts, ...studioArtifacts, ...bossArtifacts];
 }
 
 export function courseDone(completed: string[]): boolean {
-  return RANKS.every((rank) => rankComplete(rank.id, completed));
+  return (
+    RANKS.every((rank) => rankComplete(rank.id, completed)) &&
+    STUDIOS.every((studio) => completed.includes(studio.id))
+  );
 }
 
 export function courseTotals() {
   const items = allCourseItems();
-  return { lessons: items.length, bosses: BOSSES.length };
+  return {
+    lessons: items.length,
+    bosses: BOSSES.length,
+    studios: STUDIOS.length,
+  };
 }
 
 export function nextRankEntry(rank: RankId) {
   const index = RANKS.findIndex((item) => item.id === rank);
   const next = RANKS[index + 1];
+
   if (!next) {
+    const studio = studioForTrackItem("builder");
     return {
-      href: "/complete",
-      label: "See the course complete →",
+      href: studio?.href ?? "/complete",
+      label: "Enter The Builder Studio →",
     };
   }
+
+  if (rank === "caller") {
+    return {
+      href: "/campus",
+      label: "Choose your Studio →",
+    };
+  }
+
   const item = courseForRank(next.id)[0];
   if (!item) return undefined;
   return {

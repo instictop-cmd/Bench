@@ -109,6 +109,12 @@ export default function Home() {
               <span>Engineer</span>
               <span aria-hidden>→</span>
               <span>Architect</span>
+              <span aria-hidden>→</span>
+              <span>Connector</span>
+              <span aria-hidden>→</span>
+              <span>Caller</span>
+              <span aria-hidden>→</span>
+              <span>Pilot</span>
             </div>
             <span className="termfont text-[14px] text-edge2">v0.1</span>
           </div>

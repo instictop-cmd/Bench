@@ -4,9 +4,23 @@ export type RankId =
   | "tinkerer"
   | "integrator"
   | "engineer"
-  | "architect";
+  | "architect"
+  | "connector"
+  | "caller"
+  | "pilot";
 
-export type CourseKind = "quest" | "flow" | "tool" | "eval" | "deploy";
+export type CourseKind =
+  | "quest"
+  | "flow"
+  | "tool"
+  | "eval"
+  | "deploy"
+  | "connect"
+  | "request"
+  | "operate"
+  | "studio";
+
+export type RankTrack = "core" | "shared" | "operator" | "builder";
 
 export type QuestChoice = {
   id: string;
@@ -49,6 +63,7 @@ export type Rank = {
   zone: string;
   verb: string;
   kind: CourseKind;
+  track?: RankTrack;
   blurb: string;
 };
 
@@ -100,6 +115,36 @@ export const RANKS: Rank[] = [
     verb: "deploy",
     kind: "deploy",
     blurb: "Ship and stay calm. Read logs, roll back, gate risk, run the service.",
+  },
+  {
+    id: "connector",
+    name: "Connector",
+    zone: "The Switchboard",
+    verb: "connect",
+    kind: "connect",
+    track: "shared",
+    blurb:
+      "Give the model hands. Read a server, call a tool, use a resource, and trust nothing blindly.",
+  },
+  {
+    id: "caller",
+    name: "Caller",
+    zone: "The Exchange",
+    verb: "request",
+    kind: "request",
+    track: "shared",
+    blurb:
+      "Speak HTTP. Read a payload, carry a key, survive a 429, and verify an event.",
+  },
+  {
+    id: "pilot",
+    name: "Pilot",
+    zone: "The Cockpit",
+    verb: "operate",
+    kind: "operate",
+    track: "builder",
+    blurb:
+      "Operate the machine. Move through a filesystem, pipe output, keep secrets out of git.",
   },
 ];
 

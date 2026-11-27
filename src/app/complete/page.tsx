@@ -4,7 +4,7 @@ import { CourseComplete } from "@/components/CourseComplete";
 export const metadata: Metadata = {
   title: "Course complete",
   description:
-    "Six ranks, thirty lessons, six trials. The Bench course is complete.",
+    "Nine ranks, forty-five lessons, nine trials, and both studios. The Bench course is complete.",
   alternates: { canonical: "/complete" },
 };
 

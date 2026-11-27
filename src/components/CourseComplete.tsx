@@ -6,6 +6,7 @@ import { ShareButton } from "./ShareButton";
 import { useProgress } from "@/lib/useProgress";
 import {
   allCourseItems,
+  allStudioItems,
   completedArtifacts,
   courseDone,
   courseTotals,
@@ -18,6 +19,9 @@ export function CourseComplete() {
   const artifacts = completedArtifacts(progress.completed);
   const done = courseDone(progress.completed);
   const lessonsDone = allCourseItems().filter((item) =>
+    progress.completed.includes(item.id),
+  ).length;
+  const studiosDone = allStudioItems().filter((item) =>
     progress.completed.includes(item.id),
   ).length;
 
@@ -45,11 +49,11 @@ export function CourseComplete() {
           <main className="flex flex-1 flex-col justify-center py-10">
             <p className="kicker">not yet</p>
             <h1 className="pxfont mt-4 text-[20px] leading-[1.5] text-ink">
-              THE ROOFTOP IS STILL LOCKED
+              THE LAUNCHPAD IS STILL LOCKED
             </h1>
             <p className="termfont mt-3 max-w-xl text-[19px] leading-[1.35] text-dim">
               {lessonsDone} of {totals.lessons} lessons are logged. Finish all
-              six ranks and their trials to open this page.
+              {RANKS.length} ranks, their trials, and both studios to open this page.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href="/campus" className="pixel-btn">
@@ -90,12 +94,12 @@ export function CourseComplete() {
             YOU SHIPPED.
           </h1>
           <p className="termfont mt-3 max-w-2xl text-[20px] leading-[1.35] text-dim">
-            Six ranks. {totals.lessons} lessons. {totals.bosses} trials. You can
+            {RANKS.length} ranks. {totals.lessons} lessons. {totals.bosses} trials. Two studios. You can
             command a model, check a claim, build a flow, give it tools, measure
             it, and ship it without panicking.
           </p>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="border-2 border-edge2 bg-accent/10 px-3 py-3">
               <p className="termfont text-[13px] uppercase tracking-[0.12em] text-dim">
                 experience
@@ -114,10 +118,19 @@ export function CourseComplete() {
             </div>
             <div className="border-2 border-edge bg-black/20 px-3 py-3">
               <p className="termfont text-[13px] uppercase tracking-[0.12em] text-dim">
+                studios
+              </p>
+              <p className="termfont mt-1 text-[24px] text-ink">
+                {studiosDone} / {totals.studios}
+              </p>
+            </div>
+            <div className="border-2 border-edge bg-black/20 px-3 py-3">
+              <p className="termfont text-[13px] uppercase tracking-[0.12em] text-dim">
                 artifacts
               </p>
               <p className="termfont mt-1 text-[24px] text-ink">
-                {artifacts.length} / {totals.lessons + totals.bosses}
+                {artifacts.length} /{" "}
+                {totals.lessons + totals.bosses + totals.studios}
               </p>
             </div>
           </div>
@@ -131,7 +144,7 @@ export function CourseComplete() {
             </Link>
             <ShareButton
               label="Share the lab"
-              text={`I finished all six ranks on Bench — a pixel lab for learning AI. ${progress.xp} XP.`}
+              text={`I finished all nine ranks on Bench — a pixel lab for learning AI. ${progress.xp} XP.`}
             />
           </div>
 
@@ -186,7 +199,7 @@ export function CourseComplete() {
         <footer className="flex flex-col gap-2 border-t-2 border-edge/60 pt-3">
           <div className="flex items-center justify-between gap-4">
             <span className="termfont text-[14px] text-edge2">
-              all {totals.lessons + totals.bosses} artifacts logged
+              all {totals.lessons + totals.bosses + totals.studios} artifacts logged
             </span>
             <Link
               href="/"

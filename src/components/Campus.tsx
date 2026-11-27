@@ -7,6 +7,7 @@ import { Signup } from "./Signup";
 import { useProgress } from "@/lib/useProgress";
 import {
   allCourseItems,
+  allStudioItems,
   completedArtifacts,
   courseDone,
   courseForRank,
@@ -15,6 +16,8 @@ import {
   rankBoss,
   rankComplete,
   rankUnlocked,
+  studioComplete,
+  studioUnlocked,
   unlockReason,
 } from "@/game/course";
 import { RANKS } from "@/game/types";
@@ -30,6 +33,9 @@ export function Campus() {
     const boss = rankBoss(rank.id);
     return boss ? progress.completed.includes(boss.id) : false;
   }).length;
+  const studiosDone = allStudioItems().filter((item) =>
+    progress.completed.includes(item.id),
+  ).length;
   const allDone = courseDone(progress.completed);
   const coreDone = RANKS.slice(0, 2).every((rank) =>
     rankComplete(rank.id, progress.completed),
@@ -64,8 +70,8 @@ export function Campus() {
             THE CAMPUS
           </h1>
           <p className="termfont mt-3 max-w-2xl text-[20px] leading-[1.35] text-dim">
-            Six rooms, one course. Start in the Library and finish on the
-            Rooftop. Every lesson adds something to your notebook.
+            Six core ranks, then the Builder Wing. Connect tools, call APIs,
+            operate a terminal, and ship a real project.
           </p>
 
           <div className="mt-4 max-w-xs">
@@ -81,8 +87,9 @@ export function Campus() {
                 COURSE COMPLETE
               </p>
               <p className="termfont mt-2 text-[19px] text-ink">
-                Six ranks, {totals.lessons} lessons, {totals.bosses} trials.
-                You can build, measure, and ship.
+                {RANKS.length} ranks, {totals.lessons} lessons,{" "}
+                {totals.bosses} trials, both studios. You can build, measure,
+                and ship.
               </p>
               <Link
                 href="/play"
@@ -97,7 +104,7 @@ export function Campus() {
                 CORE COURSE COMPLETE
               </p>
               <p className="termfont mt-2 text-[19px] text-ink">
-                Two ranks down. Four rooms to go.
+                Two ranks down. {RANKS.length - 2} rooms to go.
               </p>
               {openRank ? (
                 <Link
@@ -159,9 +166,16 @@ export function Campus() {
                           {rank.blurb}
                         </p>
                       </div>
-                      <span className="border-2 border-edge px-2 py-1 termfont text-[15px] text-amber">
-                        {rank.verb}
-                      </span>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        {rank.track === "builder" ? (
+                          <span className="termfont text-[12px] uppercase tracking-[0.08em] text-edge2">
+                            builder path
+                          </span>
+                        ) : null}
+                        <span className="border-2 border-edge px-2 py-1 termfont text-[15px] text-amber">
+                          {rank.verb}
+                        </span>
+                      </div>
                     </div>
 
                     {!unlocked ? (
@@ -305,6 +319,88 @@ export function Campus() {
           </div>
 
           <section className="mt-8">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="kicker">the launchpad</p>
+                <h2 className="pxfont mt-3 text-[13px] text-ink">
+                  THE STUDIO
+                </h2>
+                <p className="termfont mt-1 max-w-2xl text-[17px] text-dim">
+                  Two promises. One project. Pick the path that fits you.
+                </p>
+              </div>
+              <span className="termfont text-[15px] text-dim">
+                {studiosDone} / {totals.studios}
+              </span>
+            </div>
+
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              {allStudioItems().map((item) => {
+                const unlocked = studioUnlocked(
+                  item.track,
+                  progress.completed,
+                );
+                const done = studioComplete(item.track, progress.completed);
+                const reason =
+                  item.track === "operator"
+                    ? "finish The Exchange to unlock"
+                    : "finish The Cockpit to unlock";
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`pixel-panel relative overflow-hidden ${
+                      unlocked ? "pixel-panel--lit" : "opacity-60"
+                    }`}
+                  >
+                    <div className="scene-grid pointer-events-none absolute inset-0 opacity-30" />
+                    <div className="relative flex flex-col gap-3 p-4 sm:p-5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="kicker">
+                            {item.studio.zone} · {item.track} path
+                          </p>
+                          <h3 className="pxfont mt-2 text-[13px] leading-[1.6] text-ink">
+                            {item.title}
+                          </h3>
+                          <p className="termfont mt-1 text-[16px] text-dim">
+                            {item.studio.goal}
+                          </p>
+                        </div>
+                        <span className="border-2 border-edge px-2 py-1 termfont text-[14px] text-amber">
+                          {item.track}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 border-t-2 border-edge/60 pt-3">
+                        <span className="termfont text-[15px] text-dim">
+                          {(item.studio.missions.length || 5) + " missions"} ·{" "}
+                          {item.xp} xp
+                        </span>
+                        {done ? (
+                          <span className="termfont text-[15px] text-accent">
+                            portfolio filed ✓
+                          </span>
+                        ) : unlocked ? (
+                          <Link
+                            href={item.href}
+                            className="pixel-btn"
+                          >
+                            Enter studio →
+                          </Link>
+                        ) : (
+                          <span className="termfont text-[14px] text-edge2">
+                            locked · {reason}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="mt-8">
             <p className="kicker">notebook</p>
             <h2 className="pxfont mt-3 text-[13px] text-ink">What you keep</h2>
             {artifacts.length === 0 ? (
@@ -348,7 +444,8 @@ export function Campus() {
           <div className="flex items-center justify-between gap-4">
             <span className="termfont text-[14px] text-edge2">
               {completedItems} of {totals.lessons} lessons complete ·{" "}
-              {bossesDone} of {totals.bosses} bosses
+              {bossesDone} of {totals.bosses} bosses · {studiosDone} of{" "}
+              {totals.studios} studios
             </span>
             <Link
               href="/"
