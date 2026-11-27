@@ -60,9 +60,9 @@ Without Upstash, rate limits are per serverless instance. The Vercel firewall ru
 
 The Vercel firewall rule is **live**:
 
-> `AI proxy rate limit` — `/api/ai`, 60 requests / 60s per IP, deny for 1m
+> `AI proxy rate limit` — `/api/ai`, 120 requests / 60s per IP, deny for 1m
 
-This is the global backstop behind the app-level session, IP and daily limits.
+This is the global backstop behind the app-level session, IP and daily limits. 120/min keeps a 25-student workshop behind one campus NAT working while still capping abuse.
 
 ## Production verification (27 Nov 2026)
 
