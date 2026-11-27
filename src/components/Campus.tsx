@@ -306,7 +306,7 @@ export function Campus() {
               })}
             </div>
             <p className="termfont mt-2 text-[15px] text-edge2">
-              3 more flow quests and The Runaway are in the next drop.
+              2 more flow quests and The Runaway are in the next drop.
             </p>
           </section>
 

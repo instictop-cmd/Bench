@@ -1,6 +1,8 @@
 import { FLOW_OPS, type FlowSpec, type FlowTrace } from "@/game/flow";
 import { streamAi } from "./ai-client";
 
+const REFUSAL = /^\s*i can'?t help with that/i;
+
 export interface FlowRuntime {
   run(spec: FlowSpec, input: string): Promise<FlowTrace>;
 }
@@ -26,7 +28,7 @@ export class ScriptedFlowRuntime implements FlowRuntime {
         try {
           const result = await streamAi(prompt, operation.serverId, () => {});
           output = result.text.trim();
-          if (!output) {
+          if (!output || REFUSAL.test(output)) {
             degraded = true;
             output = operation.fallback ?? "";
           }

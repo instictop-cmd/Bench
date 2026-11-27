@@ -146,7 +146,7 @@ export const AI_QUESTS: Record<string, AiQuestConfig> = {
   "fl-quiz": {
     scope: null,
     redirect: "",
-    systemPrompt: `${BASE} Write exactly 3 short quiz questions from the text. No answers, no preamble.`,
+    systemPrompt: `${BASE} Write exactly 3 different short quiz questions from the text. No answers, no preamble.`,
     fallback:
       "1. What is the main idea?\n2. Which example is used?\n3. What should you test next?",
   },
@@ -162,7 +162,7 @@ export const AI_QUESTS: Record<string, AiQuestConfig> = {
   "fl-quiz-topic": {
     scope: null,
     redirect: "",
-    systemPrompt: `${BASE} Write exactly 3 short quiz questions about the explanation. No answers, no preamble.`,
+    systemPrompt: `${BASE} Write exactly 3 different short quiz questions about the explanation. No answers, no preamble.`,
     fallback:
       "1. What is the topic?\n2. What is one example?\n3. What is a common mistake?",
   },

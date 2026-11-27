@@ -31,6 +31,7 @@ export function FlowPlayer({ lesson }: { lesson: FlowLesson }) {
     ),
   );
   const [trace, setTrace] = useState<FlowTrace | null>(null);
+  const [triggerId, setTriggerId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -69,8 +70,8 @@ export function FlowPlayer({ lesson }: { lesson: FlowLesson }) {
 
   async function run() {
     if (busy) return;
-    const spec = { steps: built, variables };
-    const validation = validateFlow(spec, lesson);
+    const spec = { steps: built, variables, triggerId: triggerId || undefined };
+    const validation = validateFlow(spec, lesson, input);
 
     if (validation) {
       setError(validation);
@@ -119,6 +120,7 @@ export function FlowPlayer({ lesson }: { lesson: FlowLesson }) {
     );
     setTrace(null);
     setError("");
+    setTriggerId("");
     setDone(false);
     setAwarded(false);
   }
@@ -163,6 +165,36 @@ export function FlowPlayer({ lesson }: { lesson: FlowLesson }) {
               </div>
 
               <div className="hairline" />
+
+              {lesson.trigger ? (
+                <div>
+                  <p className="pxfont text-[8px] tracking-[0.14em] text-dim">
+                    {lesson.trigger.label.toUpperCase()}
+                  </p>
+                  <div className="mt-2 flex flex-col gap-2">
+                    {lesson.trigger.options.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        disabled={done || busy}
+                        aria-pressed={triggerId === option.id}
+                        className={`chip ${
+                          triggerId === option.id ? "chip--active" : ""
+                        }`}
+                        onClick={() => {
+                          setTriggerId(option.id);
+                          setError("");
+                        }}
+                      >
+                        <span className="block">{option.label}</span>
+                        <span className="block text-[14px] text-edge2">
+                          {option.hint}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               <div>
                 <p className="pxfont text-[8px] tracking-[0.14em] text-dim">
@@ -332,6 +364,16 @@ export function FlowPlayer({ lesson }: { lesson: FlowLesson }) {
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
+                  {lesson.trigger ? (
+                    <p className="termfont text-[14px] text-edge2">
+                      trigger ·{" "}
+                      {
+                        lesson.trigger.options.find(
+                          (option) => option.id === triggerId,
+                        )?.label
+                      }
+                    </p>
+                  ) : null}
                   {trace.steps.map((step, index) => (
                     <div
                       key={step.id}

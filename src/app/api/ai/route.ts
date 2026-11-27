@@ -16,6 +16,7 @@ const MAX_BODY = 16_384;
 
 const cache = new Map<string, { text: string; mock: boolean }>();
 const CACHE_MAX = 100;
+const REFUSAL = /^\s*i can'?t help with that/i;
 
 function cacheGet(key: string) {
   return cache.get(key);
@@ -217,7 +218,9 @@ export async function POST(req: NextRequest) {
           streamController.enqueue(encoder.encode(next.value));
         }
 
-        if (cacheable) cacheSet(key, { text: full, mock: false });
+        if (cacheable && full && !REFUSAL.test(full)) {
+          cacheSet(key, { text: full, mock: false });
+        }
         streamController.close();
       } catch (error) {
         if (!controller.signal.aborted) {

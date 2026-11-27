@@ -249,6 +249,12 @@ body {
   cursor: not-allowed;
 }
 
+.chip--active {
+  border-color: var(--accent);
+  color: var(--ink);
+  background: rgba(125, 255, 179, 0.08);
+}
+
 .cmd-input {
   width: 100%;
   background: transparent;

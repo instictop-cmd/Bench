@@ -23,6 +23,7 @@ export type FlowStep = {
 export type FlowSpec = {
   steps: FlowStep[];
   variables: Record<string, string>;
+  triggerId?: string;
 };
 
 export type FlowTraceStep = {
@@ -48,6 +49,25 @@ export type FlowVariable = {
   default: string;
 };
 
+export type FlowTriggerOption = {
+  id: string;
+  label: string;
+  hint: string;
+  correct: boolean;
+  testId: string;
+};
+
+export type FlowTrigger = {
+  label: string;
+  options: FlowTriggerOption[];
+};
+
+export const TRIGGER_TESTS: Record<string, (input: string) => boolean> = {
+  "has-link": (input) => /https?:\/\/\S+/i.test(input),
+  empty: (input) => input.trim().length === 0,
+  always: () => true,
+};
+
 export type FlowLesson = {
   id: string;
   order: number;
@@ -59,6 +79,7 @@ export type FlowLesson = {
   inputDefault: string;
   maxInput: number;
   variables?: FlowVariable[];
+  trigger?: FlowTrigger;
   operations: string[];
   required: string[];
   win: string;
@@ -70,11 +91,11 @@ export const FLOW_OPS: Record<string, FlowOperation> = {
   summarise: {
     id: "summarise",
     label: "Summarise notes",
-    hint: "3 bullets from the input",
+    hint: "3 bullets from the previous step",
     kind: "model",
     serverId: "fl-summarise",
-    prompt: ({ input }) =>
-      `Summarise these study notes in exactly 3 short bullets. No preamble.\n\n${input}`,
+    prompt: ({ previous }) =>
+      `Summarise these study notes in exactly 3 short bullets. No preamble.\n\n${previous}`,
     fallback:
       "• The notes explain one idea.\n• They give one example.\n• They leave one question to test.",
   },
@@ -85,7 +106,7 @@ export const FLOW_OPS: Record<string, FlowOperation> = {
     kind: "model",
     serverId: "fl-quiz",
     prompt: ({ previous }) =>
-      `Write exactly 3 short quiz questions from this text. No answers, no preamble.\n\n${previous}`,
+      `Write exactly 3 different short quiz questions from this text. No answers, no preamble.\n\n${previous}`,
     fallback:
       "1. What is the main idea?\n2. Which example is used?\n3. What should you test next?",
   },
@@ -95,6 +116,18 @@ export const FLOW_OPS: Record<string, FlowOperation> = {
     hint: "store one value for later steps",
     kind: "transform",
     transform: ({ variables }) => variables.topic?.trim() ?? "",
+  },
+  "strip-link": {
+    id: "strip-link",
+    label: "Strip the link",
+    hint: "remove the URL, keep the notes",
+    kind: "transform",
+    transform: ({ input }) =>
+      input
+        .replace(/https?:\/\/\S+/gi, "")
+        .replace(/\bsource:\s*$/i, "")
+        .replace(/\s+/g, " ")
+        .trim(),
   },
   explain: {
     id: "explain",
@@ -114,7 +147,7 @@ export const FLOW_OPS: Record<string, FlowOperation> = {
     kind: "model",
     serverId: "fl-quiz-topic",
     prompt: ({ previous }) =>
-      `Write exactly 3 short quiz questions about this explanation. No answers, no preamble.\n\n${previous}`,
+      `Write exactly 3 different short quiz questions about this explanation. No answers, no preamble.\n\n${previous}`,
     fallback:
       "1. What is the topic?\n2. What is one example?\n3. What is a common mistake?",
   },
@@ -185,6 +218,53 @@ export const FLOW_LESSONS: FlowLesson[] = [
     },
     xp: 15,
   },
+  {
+    id: "fl-03",
+    order: 3,
+    title: "Add a Trigger",
+    scene: "the workshop",
+    goal: "Run the flow only when the input looks like a source link.",
+    inputLabel: "Notes with a source link",
+    inputPlaceholder: "Notes... Source: https://...",
+    inputDefault:
+      "Photosynthesis is how plants use sunlight, water, and carbon dioxide to make food. Source: https://example.com/photosynthesis",
+    maxInput: 300,
+    trigger: {
+      label: "When should this flow run?",
+      options: [
+        {
+          id: "has-link",
+          label: "When the input contains a link",
+          hint: "look for http:// or https://",
+          correct: true,
+          testId: "has-link",
+        },
+        {
+          id: "empty",
+          label: "When the input is empty",
+          hint: "never for this lesson",
+          correct: false,
+          testId: "empty",
+        },
+        {
+          id: "always",
+          label: "Always run",
+          hint: "too broad to be a condition",
+          correct: false,
+          testId: "always",
+        },
+      ],
+    },
+    operations: ["strip-link", "summarise", "quiz", "title"],
+    required: ["strip-link", "summarise", "quiz"],
+    win: "Correct trigger, link stripped, then summary and quiz.",
+    artifact: {
+      id: "trigger-switch",
+      name: "Trigger Switch",
+      note: "run only when the condition is true",
+    },
+    xp: 15,
+  },
 ];
 
 export const flowLessonById = (id: string) =>
@@ -198,7 +278,23 @@ export const nextFlowLesson = (id: string) => {
 export function validateFlow(
   spec: FlowSpec,
   lesson: FlowLesson,
+  input = "",
 ): string | null {
+  if (lesson.trigger) {
+    if (!spec.triggerId) return "pick a trigger first.";
+
+    const option = lesson.trigger.options.find(
+      (candidate) => candidate.id === spec.triggerId,
+    );
+    if (!option) return "pick a trigger first.";
+
+    const test = TRIGGER_TESTS[option.testId];
+    if (!option.correct) return "that trigger is too broad for this lesson.";
+    if (!test || !test(input)) {
+      return "this input does not match the trigger. add a link.";
+    }
+  }
+
   const ids = spec.steps.map((step) => step.operationId);
 
   if (ids.length !== lesson.required.length) {
