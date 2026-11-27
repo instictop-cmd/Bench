@@ -145,6 +145,97 @@ export const BOSSES: Boss[] = [
     ],
   },
   {
+    id: "an-boss",
+    rank: "analyst",
+    title: "The Vague Machine",
+    scene: "the archive",
+    goal: "Turn fog into a testable question. Pick the question that adds what is missing.",
+    pass: 2,
+    xp: 35,
+    artifact: {
+      id: "fog-lens",
+      name: "Fog Lens",
+      note: "ask who, when, where, and how many before you believe a claim",
+    },
+    rounds: [
+      {
+        id: "round-1",
+        title: "Round 1 — “many students”",
+        prompt: "Many students struggle with AI.",
+        options: [
+          {
+            id: "o1",
+            label: "Which students, where, and how many?",
+            correct: true,
+            feedback: "Yes. Population, place, and size. That is a testable claim.",
+          },
+          {
+            id: "o2",
+            label: "Is AI good or bad?",
+            correct: false,
+            feedback: "That is a new topic, not a missing ingredient.",
+          },
+          {
+            id: "o3",
+            label: "Should I use AI?",
+            correct: false,
+            feedback: "That is a personal decision, not a test of the claim.",
+          },
+        ],
+      },
+      {
+        id: "round-2",
+        title: "Round 2 — “experts agree”",
+        prompt: "Experts agree AI improves learning.",
+        options: [
+          {
+            id: "o1",
+            label: "Which experts, which learners, and what outcome?",
+            correct: true,
+            feedback: "Yes. Expertise, population, measure. Then you can check it.",
+          },
+          {
+            id: "o2",
+            label: "Who counts as an expert?",
+            correct: false,
+            feedback: "Closer, but the learners and the outcome are still missing.",
+          },
+          {
+            id: "o3",
+            label: "Does AI improve anything?",
+            correct: false,
+            feedback: "That repeats the claim. It does not test it.",
+          },
+        ],
+      },
+      {
+        id: "round-3",
+        title: "Round 3 — “significantly”",
+        prompt: "AI significantly increases marks.",
+        options: [
+          {
+            id: "o1",
+            label: "By how much, for whom, and compared to what?",
+            correct: true,
+            feedback: "Yes. Effect size, population, and counterfactual.",
+          },
+          {
+            id: "o2",
+            label: "What is a mark?",
+            correct: false,
+            feedback: "Definitions are useful, but the comparison is missing.",
+          },
+          {
+            id: "o3",
+            label: "Is AI significant?",
+            correct: false,
+            feedback: "“Significant” is the word to test, not repeat.",
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: "ru-boss",
     rank: "tinkerer",
     title: "The Runaway",
