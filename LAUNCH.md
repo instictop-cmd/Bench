@@ -6,8 +6,11 @@ Repo: **https://github.com/instictop-cmd/Bench** (private)
 ## What is in the product
 
 - Prologue, 10 quests across two ranks, two deterministic boss trials
-- Workshop: five `flow` lessons (Chain Two Steps, Carry a Variable, Add a Trigger, Fail Gracefully, The Daily Flow) plus **The Runaway** boss, with a scripted FlowRuntime, trigger conditions, guards, a step budget, run log and deterministic validation
-- Real model calls through Agnes 3.0 Flash, streamed, scoped per quest
+- Workshop: five `flow` lessons plus **The Runaway** boss, with a scripted FlowRuntime, trigger conditions, guards, a step budget, run log and deterministic validation
+- Server Room: five `tool` lessons plus **The Overreach** boss, with mock tools, schemas, least-privilege scopes and a deterministic call log
+- Observatory: five `eval` lessons plus **The Gauntlet** boss, with authored cases, deterministic checks, pass rates, regressions and a ship gate
+- Rooftop: five `deploy` lessons plus **The Outage** boss, with a simulated version timeline, logs, metrics, rollback, approval gates and a course-complete page
+- Real model calls through Agnes 3.0 Flash, streamed, scoped per quest and per flow step
 - Signed session cookie, origin + JSON checks, moderation, per-session/IP/hour limits, daily cap, prompt cache, provider fallback
 - Campus map, XP, notebook artifacts, share button, optional email capture
 - Privacy, terms, AI disclosure, robots, sitemap, Open Graph image
@@ -26,7 +29,7 @@ npm run ai:check      # provider status + latency
 CI must be green on `main`. The production smoke test:
 
 ```bash
-for p in campus quest/op-01 quest/an-01 boss/op-boss boss/an-boss privacy terms robots.txt sitemap.xml; do
+for p in campus complete tool/tl-01 eval/en-01 deploy/dp-01 boss/op-boss boss/an-boss boss/ru-boss boss/in-boss boss/en-boss boss/ar-boss privacy terms robots.txt sitemap.xml; do
   curl -s -o /dev/null -w "/$p -> %{http_code}\n" "https://bench-sepia.vercel.app/$p"
 done
 ```
@@ -67,15 +70,25 @@ This is the global backstop behind the app-level session, IP and daily limits. 1
 
 ## Production verification (27 Nov 2026)
 
-- Full run on the production URL: **10/10 quests, 2/2 bosses, 185 XP, 12 artifacts**
-- Both ranks show `rank complete`; campus completion banner appears
-- **Workshop:** `fl-01` through `fl-05` and The Runaway completed on production; **300 XP, 18 artifacts, Workshop 5/5 + boss, 15/15 lessons**
+- **Full course run on the production URL: 30/30 lessons, 6/6 bosses, 870 XP, 36 artifacts, all six ranks `rank complete`**
+- **Core ranks:** 10/10 quests, 2/2 bosses, 185 XP, 12 artifacts
+- **Workshop:** `fl-01` through `fl-05` and The Runaway completed on production; 15/15 lessons after this rank
+- **Server Room:** `tl-01` through `tl-05` and The Overreach completed on production; narrow-scope guard rejected `files.readwrite` for a write-only task, and an incomplete schema was rejected with a field error
+- **Observatory:** `en-01` through `en-05` and The Gauntlet completed on production; deterministic reports showed pass rates, the v2 regression was caught, and the target candidate cleared every gate
+- **Rooftop:** `dp-01` through `dp-05` and The Outage completed on production; each action produced a deterministic console result and the final runbook run cleared
+- **Course complete:** `/complete` shows 870 XP, 30/30 lessons and 36/36 artifacts; the campus banner and all six cards agree
 - Flow path: build a flow, run it with real model output, validate order, trigger, guard and budget; invalid flows are rejected with a hint; provider refusal or failure uses the authored fallback; refusals are never cached
-- Boss artifacts (Truth Auditor, Fog Lens, Runaway Badge) appear in the notebook
 - Security gates: `401` no session, `415` wrong content type, `403` cross-site, moderation refusal
 - Provider failure path: invalid key → authored reference answer → quest still completes
 - CI green on `main`; build, lint and typecheck pass
 - Vercel Web Analytics enabled; firewall rule live
+
+## Simulated by design (Rank 4–6)
+
+- Tool calls run against `MockToolRuntime`; no real files, calendar or web access
+- Eval suites run authored candidate outputs through deterministic `contains` / `equals` / `regex` / `maxWords` checks; the model is never the judge
+- Deploys run a simulated console; no infrastructure is created or changed
+- Each runtime sits behind an interface (`ToolRuntime`, `EvalRuntime`, `DeployRuntime`), so MCP, live evals and a sandboxed deploy can replace the adapter without rewriting the lessons
 
 ## Remaining external keys (not blockers)
 

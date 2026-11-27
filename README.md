@@ -35,10 +35,13 @@ It's built for people who don't write code: BBA, MBA, BCom, design, and anyone w
 - **The prologue** — four beats, first win in under a minute: wake Pip, run your first command, ask something real, catch a confident lie
 - **Operator rank** — five quests on instruction: constraints, deliverables, roles, voice, and revision. Ends with **The Confident Liar** boss
 - **Analyst rank** — five quests on evidence: quoting a card, scope, recency, exact wording, and unsupported claims. Ends with **The Vague Machine** boss
-- **Campus map** — two rooms and the Workshop, three ranks still locked, with per-rank progress, boss trials and a notebook of artifacts
+- **Campus map** — six ranks in one course, with per-rank progress, boss trials, locked-rank unlock reasons and a notebook of artifacts
 - **The Workshop** — the Tinkerer rank: five `flow` lessons (chain steps, carry a variable, add a trigger, fail gracefully, build a daily routine with a step budget), ending in **The Runaway** boss. No code, real outputs, a run log and deterministic flow checks
+- **The Server Room** — the Integrator rank: five `tool` lessons (pick a tool, fill a schema, read a partial result, grant the least scope, inspect a model-proposed call), ending in **The Overreach** boss. Mock tools execute deterministically; no external side effects
+- **The Observatory** — the Engineer rank: five `eval` lessons (write a case, run a suite, triage a failure, catch a regression, set the gate), ending in **The Gauntlet** boss. Deterministic checks; the model is the candidate, never the judge
+- **The Rooftop** — the Architect rank: five `deploy` lessons (ship with a health check, read logs, roll back, add an approval gate, run 30 days), ending in **The Outage** boss, then a **course complete** page with all 36 artifacts. A simulated console, no real infrastructure
 - **Share and signup** — a native share card and an optional email list
-- **Real AI behind every command** — Agnes 3.0 Flash, streamed from a server route. Prompt scope, moderation, signed sessions, rate limits and a deterministic fallback
+- **Real AI behind the AI steps** — Agnes 3.0 Flash, streamed from a server route for `ai` commands and the model steps of a flow. Tool calls, evals and deploys are deterministic simulations. Prompt scope, moderation, signed sessions, rate limits and authored fallbacks
 - **Local progress** — XP, completed quests and artifacts in `localStorage`; no account required
 
 See [LAUNCH.md](./LAUNCH.md) for the launch checklist, env vars and the one pending manual approval.
@@ -46,6 +49,12 @@ See [LAUNCH.md](./LAUNCH.md) for the launch checklist, env vars and the one pend
 | The prologue | Quest 01 | The campus |
 | --- | --- | --- |
 | ![The prologue](docs/prologue.png) | ![Quest 01](docs/quest-1.png) | ![The campus](docs/campus.png) |
+
+| The Server Room | The Observatory | The Rooftop |
+| --- | --- | --- |
+| ![Tool lessons](docs/tool.png) | ![Eval lessons](docs/eval.png) | ![Deploy lessons](docs/deploy.png) |
+
+![Course complete](docs/course-complete.png)
 
 ## Run it
 
@@ -89,9 +98,9 @@ No database, auth provider, or other service to provision.
 
 **Progress is local.** XP and notebook items live in `localStorage`, read through `useSyncExternalStore` and updated by an append-style event (`bench:progress`). There is no auth or database yet.
 
-**The seam is deliberate.** `Terminal` only renders lines; the phase machine owns state. A real model proxy and a sandboxed runtime can slot in behind the same interface without rewriting the content. That's the next build.
+**The seam is deliberate.** Each advanced rank has a small runtime interface: `ToolRuntime` (mock tools now, MCP later), `EvalRuntime` (scripted checks now, a live candidate later), and `DeployRuntime` (a simulated console now, a real sandbox later). The content and the game rules stay the same when an adapter swaps.
 
-**Nothing can be broken.** Hints, retries, and reset are part of the design. The prologue has no wrong answer.
+**Nothing can be broken.** Hints, retries, and reset are part of the design. Failed calls, broken suites and bad deploys are safe states with a next step, not dead ends.
 
 ## Project structure
 
@@ -101,9 +110,13 @@ src/
     page.tsx           landing page
     play/page.tsx      the prologue
     campus/page.tsx    rank map and notebook
+    complete/page.tsx  course-complete payoff
     quest/[id]/page.tsx  generic quest player
     boss/[id]/page.tsx   rank boss trials
     flow/[id]/page.tsx   workshop flow lessons
+    tool/[id]/page.tsx   server room tool lessons
+    eval/[id]/page.tsx   observatory eval lessons
+    deploy/[id]/page.tsx rooftop deploy lessons
     privacy/page.tsx   privacy policy
     terms/page.tsx     terms of use
     api/ai/route.ts    model proxy: scope, cap, cache, stream
@@ -113,7 +126,11 @@ src/
     QuestPlayer.tsx    generic quest renderer
     BossPlayer.tsx     deterministic boss trials
     FlowPlayer.tsx     flow canvas, run log, checks
-    Campus.tsx         rank map and notebook
+    ToolPlayer.tsx     tool palette, schema form, scopes, call log
+    EvalPlayer.tsx     candidate picker, suite runner, eval report
+    DeployPlayer.tsx   version timeline, logs, deploy console
+    CourseComplete.tsx the 36-artifact payoff page
+    Campus.tsx         data-driven rank map and notebook
     Dialogue.tsx       typewriter + Pip's voice
     Terminal.tsx       line renderer + streaming
     PipSprite.tsx      the pixel robot
@@ -122,19 +139,26 @@ src/
     ShareButton.tsx    native share / clipboard
     Signup.tsx         optional email capture
   game/
-    types.ts           ranks and quest types
+    types.ts           six ranks and shared lesson types
+    course.ts          rank gating, course registry, unlock chain
     quests.ts          ten quests, two ranks
-    bosses.ts          two rank bosses
     flow.ts            flow lessons, operations, validation
+    tool.ts            tool schemas, scopes, five lessons
+    eval.ts            eval cases, checks, five lessons
+    deploy.ts          versions, logs, actions, five lessons
+    bosses.ts          six rank bosses
   lib/
     ai.ts              Agnes provider
     ai-quests.ts       server-owned prompts, scopes, cards
     ai-client.ts       browser streaming client + parsers
     flow-runtime.ts    FlowRuntime seam + scripted/fake adapters
+    tool-runtime.ts    ToolRuntime seam + mock/fake adapters
+    eval-runtime.ts    EvalRuntime seam + scripted checks
+    deploy-runtime.ts  DeployRuntime seam + simulated console
     moderation.ts      safety gate
     rate-limit.ts      memory + Redis limiter
     session.ts         signed session cookie
-    progress.ts        XP, completed quests, artifacts
+    progress.ts        XP, completed lessons, artifacts
     useProgress.ts     useSyncExternalStore hook
 scripts/check-ai.mjs   provider smoke test
 .github/workflows/ci.yml  lint, typecheck, build
@@ -159,18 +183,18 @@ docs/                  README screenshots
 | **Tinkerer** | Workshop | `flow` | The Runaway |
 | **Integrator** | Server Room | `tool` | The Overreach |
 | **Engineer** | Observatory | `eval` | The Gauntlet |
-| **Architect** | Rooftop | `deploy` | The Capstone |
+| **Architect** | Rooftop | `deploy` | The Outage |
 
 Next up:
 
 - Cloudflare migration — OpenNext spike on a branch, Vercel as fallback
-- Ranks 4–6: `tool`, `eval`, `deploy`
+- Real adapters behind the existing seams: MCP tools, live evals, a sandboxed deploy
 - A shared rate limiter (Upstash) and Sentry as soon as the keys exist
 - Auth and synced progress once retention is proven
 
 ## Status
 
-Public beta. The `ai` and `check` commands run through Agnes AI, with a deterministic fallback when no key is present. XP is local and there is no auth or database yet — the goal is to prove the loop before adding accounts.
+Public beta. The course is complete: six ranks, thirty lessons, six trials and 36 artifacts. The `ai` and `flow` commands run through Agnes AI, with a deterministic fallback when no key is present; tool, eval and deploy lessons use deterministic simulated runtimes. XP is local and there is no auth or database yet — the goal is to prove the loop before adding accounts.
 
 Independent student project. Not affiliated with any company or institution.
 
