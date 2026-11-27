@@ -134,4 +134,36 @@ export const AI_QUESTS: Record<string, AiQuestConfig> = {
     fallback:
       "QUOTE: No other services are listed.\nREADS AS: does not address",
   },
+
+  "fl-summarise": {
+    scope: null,
+    redirect: "",
+    systemPrompt: `${BASE} Summarise the study notes in exactly 3 short bullets. No preamble.`,
+    fallback:
+      "• The notes explain one idea.\n• They give one example.\n• They leave one question to test.",
+  },
+
+  "fl-quiz": {
+    scope: null,
+    redirect: "",
+    systemPrompt: `${BASE} Write exactly 3 short quiz questions from the text. No answers, no preamble.`,
+    fallback:
+      "1. What is the main idea?\n2. Which example is used?\n3. What should you test next?",
+  },
+
+  "fl-explain": {
+    scope: null,
+    redirect: "",
+    systemPrompt: `${BASE} Explain the topic to a 12-year-old in exactly 2 sentences. No markdown.`,
+    fallback:
+      "Start with the simplest true sentence. Then add one concrete example.",
+  },
+
+  "fl-quiz-topic": {
+    scope: null,
+    redirect: "",
+    systemPrompt: `${BASE} Write exactly 3 short quiz questions about the explanation. No answers, no preamble.`,
+    fallback:
+      "1. What is the topic?\n2. What is one example?\n3. What is a common mistake?",
+  },
 };

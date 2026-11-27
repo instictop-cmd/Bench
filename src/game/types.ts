@@ -61,7 +61,6 @@ export const RANKS: Rank[] = [
 ];
 
 export const LOCKED_RANKS = [
-  { name: "Tinkerer", zone: "The Workshop", verb: "flow" },
   { name: "Integrator", zone: "The Server Room", verb: "tool" },
   { name: "Engineer", zone: "The Observatory", verb: "eval" },
   { name: "Architect", zone: "The Rooftop", verb: "deploy" },

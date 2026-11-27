@@ -7,16 +7,27 @@ import { Signup } from "./Signup";
 import { useProgress } from "@/lib/useProgress";
 import { QUESTS, questsForRank } from "@/game/quests";
 import { BOSSES, bossForRank } from "@/game/bosses";
+import { FLOW_LESSONS } from "@/game/flow";
 import { LOCKED_RANKS, RANKS } from "@/game/types";
 
 export function Campus() {
   const progress = useProgress();
-  const artifacts = QUESTS.filter((quest) =>
-    progress.artifacts.includes(quest.artifact.id),
-  );
+  const artifacts = [
+    ...QUESTS.filter((quest) =>
+      progress.artifacts.includes(quest.artifact.id),
+    ).map((quest) => quest.artifact),
+    ...FLOW_LESSONS.filter((lesson) =>
+      progress.artifacts.includes(lesson.artifact.id),
+    ).map((lesson) => lesson.artifact),
+  ];
   const completedQuests = QUESTS.filter((quest) =>
     progress.completed.includes(quest.id),
   ).length;
+  const flowDone = FLOW_LESSONS.filter((lesson) =>
+    progress.completed.includes(lesson.id),
+  ).length;
+  const totalItems = QUESTS.length + FLOW_LESSONS.length;
+  const completedItems = completedQuests + flowDone;
   const courseDone =
     completedQuests === QUESTS.length &&
     BOSSES.every((boss) => progress.completed.includes(boss.id));
@@ -45,8 +56,8 @@ export function Campus() {
             THE CAMPUS
           </h1>
           <p className="termfont mt-3 max-w-2xl text-[20px] leading-[1.35] text-dim">
-            Two rooms are open. Finish the Library and the Archive, and the next
-            doors unlock. Everything you make lands in your notebook.
+            Two rooms and the Workshop are open. Finish the core ranks, then
+            keep building. Everything you make lands in your notebook.
           </p>
 
           <div className="mt-4 max-w-xs">
@@ -59,14 +70,17 @@ export function Campus() {
           {courseDone ? (
             <div className="mt-4 border-2 border-accent bg-accent/10 px-4 py-3">
               <p className="pxfont text-[9px] tracking-[0.16em] text-accent">
-                COURSE COMPLETE
+                CORE COURSE COMPLETE
               </p>
               <p className="termfont mt-2 text-[19px] text-ink">
-                Two ranks, ten quests, two trials. You built the habit.
+                Two ranks, ten quests, two trials. The Workshop is open.
               </p>
-              <p className="termfont text-[16px] text-dim">
-                The Workshop is next. It unlocks flow.
-              </p>
+              <Link
+                href="/flow/fl-01"
+                className="termfont mt-1 inline-block text-[16px] text-amber underline decoration-amber/40 underline-offset-4 hover:text-ink"
+              >
+                Enter the Workshop →
+              </Link>
             </div>
           ) : null}
 
@@ -236,6 +250,67 @@ export function Campus() {
           </div>
 
           <section className="mt-8">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="kicker">the workshop</p>
+                <h2 className="pxfont mt-3 text-[15px] text-ink">
+                  Tinkerer · flow
+                </h2>
+                <p className="termfont mt-1 max-w-2xl text-[17px] text-dim">
+                  Chain steps, carry a variable, handle a failure. No code.
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="border-2 border-edge px-2 py-1 termfont text-[15px] text-amber">
+                  flow
+                </span>
+                <span className="termfont text-[15px] text-dim">
+                  {flowDone} / {FLOW_LESSONS.length}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-3 flex flex-col gap-2">
+              {FLOW_LESSONS.map((lesson) => {
+                const complete = progress.completed.includes(lesson.id);
+
+                return (
+                  <Link
+                    key={lesson.id}
+                    href={`/flow/${lesson.id}`}
+                    className={`flex items-center justify-between gap-3 border-2 px-3 py-2 transition-colors ${
+                      complete
+                        ? "border-edge bg-accent/5"
+                        : "border-edge2 bg-black/20 hover:border-accent"
+                    }`}
+                  >
+                    <span className="flex items-center gap-3">
+                      <span
+                        className={`grid h-6 w-6 place-items-center border-2 pxfont text-[8px] ${
+                          complete
+                            ? "border-accent bg-accent text-[#04140d]"
+                            : "border-edge text-edge2"
+                        }`}
+                      >
+                        {complete ? "✓" : lesson.order}
+                      </span>
+                      <span className="termfont text-[18px] text-ink">
+                        {lesson.title}
+                      </span>
+                    </span>
+                    <span className="termfont text-[14px] text-dim">
+                      +{lesson.xp} xp
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+            <p className="termfont mt-2 text-[15px] text-edge2">
+              3 more flow quests and The Runaway are in the next drop.
+            </p>
+          </section>
+
+          <section className="mt-8">
             <p className="kicker">notebook</p>
             <h2 className="pxfont mt-3 text-[13px] text-ink">What you keep</h2>
             {artifacts.length === 0 ? (
@@ -244,16 +319,16 @@ export function Campus() {
               </p>
             ) : (
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {artifacts.map((quest) => (
+                {artifacts.map((artifact) => (
                   <div
-                    key={quest.artifact.id}
+                    key={artifact.id}
                     className="border-2 border-edge bg-black/20 px-3 py-2"
                   >
                     <p className="termfont text-[18px] text-ink">
-                      {quest.artifact.name}
+                      {artifact.name}
                     </p>
                     <p className="termfont text-[15px] text-dim">
-                      {quest.artifact.note}
+                      {artifact.note}
                     </p>
                   </div>
                 ))}
@@ -298,7 +373,7 @@ export function Campus() {
         <footer className="flex flex-col gap-2 border-t-2 border-edge/60 pt-3">
           <div className="flex items-center justify-between gap-4">
             <span className="termfont text-[14px] text-edge2">
-              {completedQuests} of {QUESTS.length} quests complete
+              {completedItems} of {totalItems} lessons complete
             </span>
             <Link
               href="/"

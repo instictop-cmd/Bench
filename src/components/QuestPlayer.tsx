@@ -246,7 +246,7 @@ export function QuestPlayer({ quest }: { quest: Quest }) {
                 <p className="termfont mt-3 text-[19px] leading-[1.35] text-dim">
                   {quest.goal}
                 </p>
-                {alreadyDone ? (
+                {alreadyDone && !done ? (
                   <p className="termfont mt-2 text-[15px] text-amber">
                     completed · replaying will not add xp
                   </p>

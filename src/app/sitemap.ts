@@ -14,6 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/quest/an-01", priority: 0.7, changeFrequency: "monthly" as const },
     { path: "/boss/op-boss", priority: 0.6, changeFrequency: "monthly" as const },
     { path: "/boss/an-boss", priority: 0.6, changeFrequency: "monthly" as const },
+    { path: "/flow/fl-01", priority: 0.7, changeFrequency: "monthly" as const },
+    { path: "/flow/fl-02", priority: 0.7, changeFrequency: "monthly" as const },
     { path: "/privacy", priority: 0.2, changeFrequency: "yearly" as const },
     { path: "/terms", priority: 0.2, changeFrequency: "yearly" as const },
   ].map(({ path, priority, changeFrequency }) => ({

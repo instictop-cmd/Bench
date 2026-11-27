@@ -6,6 +6,7 @@ Repo: **https://github.com/instictop-cmd/Bench** (private)
 ## What is in the product
 
 - Prologue, 10 quests across two ranks, two deterministic boss trials
+- Workshop: two `flow` lessons (Chain Two Steps, Carry a Variable) with a scripted FlowRuntime, run log and deterministic validation
 - Real model calls through Agnes 3.0 Flash, streamed, scoped per quest
 - Signed session cookie, origin + JSON checks, moderation, per-session/IP/hour limits, daily cap, prompt cache, provider fallback
 - Campus map, XP, notebook artifacts, share button, optional email capture

@@ -36,6 +36,7 @@ It's built for people who don't write code: BBA, MBA, BCom, design, and anyone w
 - **Operator rank** — five quests on instruction: constraints, deliverables, roles, voice, and revision. Ends with **The Confident Liar** boss
 - **Analyst rank** — five quests on evidence: quoting a card, scope, recency, exact wording, and unsupported claims. Ends with **The Vague Machine** boss
 - **Campus map** — two active rooms, four locked, with per-rank progress, boss trials and a notebook of artifacts
+- **The Workshop** — the Tinkerer rank starts with two `flow` lessons: chain two model steps, then carry a variable through three. No code, real outputs, a run log and a deterministic flow check
 - **Share and signup** — a native share card and an optional email list
 - **Real AI behind every command** — Agnes 3.0 Flash, streamed from a server route. Prompt scope, moderation, signed sessions, rate limits and a deterministic fallback
 - **Local progress** — XP, completed quests and artifacts in `localStorage`; no account required
@@ -102,6 +103,7 @@ src/
     campus/page.tsx    rank map and notebook
     quest/[id]/page.tsx  generic quest player
     boss/[id]/page.tsx   rank boss trials
+    flow/[id]/page.tsx   workshop flow lessons
     privacy/page.tsx   privacy policy
     terms/page.tsx     terms of use
     api/ai/route.ts    model proxy: scope, cap, cache, stream
@@ -110,6 +112,7 @@ src/
     Prologue.tsx       prologue state machine + copy
     QuestPlayer.tsx    generic quest renderer
     BossPlayer.tsx     deterministic boss trials
+    FlowPlayer.tsx     flow canvas, run log, checks
     Campus.tsx         rank map and notebook
     Dialogue.tsx       typewriter + Pip's voice
     Terminal.tsx       line renderer + streaming
@@ -122,10 +125,12 @@ src/
     types.ts           ranks and quest types
     quests.ts          ten quests, two ranks
     bosses.ts          two rank bosses
+    flow.ts            flow lessons, operations, validation
   lib/
     ai.ts              Agnes provider
     ai-quests.ts       server-owned prompts, scopes, cards
     ai-client.ts       browser streaming client + parsers
+    flow-runtime.ts    FlowRuntime seam + scripted/fake adapters
     moderation.ts      safety gate
     rate-limit.ts      memory + Redis limiter
     session.ts         signed session cookie
@@ -158,7 +163,8 @@ docs/                  README screenshots
 
 Next up:
 
-- Ranks 3–6: `flow`, `tool`, `eval`, `deploy`
+- Three more flow quests and The Runaway boss
+- Ranks 4–6: `tool`, `eval`, `deploy`
 - A shared rate limiter (Upstash) and Sentry as soon as the keys exist
 - Auth and synced progress once retention is proven
 

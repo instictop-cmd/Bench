@@ -252,12 +252,16 @@ export function BossPlayer({ boss }: { boss: Boss }) {
                   </div>
                   {passed ? (
                     <Link
-                      href={boss.rank === "operator" ? "/quest/an-01" : "/campus"}
+                      href={
+                        boss.rank === "operator"
+                          ? "/quest/an-01"
+                          : "/flow/fl-01"
+                      }
                       className="pixel-btn w-full"
                     >
                       {boss.rank === "operator"
                         ? "Enter the Archive →"
-                        : "Back to campus"}
+                        : "Enter the Workshop →"}
                     </Link>
                   ) : (
                     <button type="button" className="pixel-btn w-full" onClick={retry}>
