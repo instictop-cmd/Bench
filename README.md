@@ -36,7 +36,7 @@ It's built for people who don't write code: BBA, MBA, BCom, design, and anyone w
 - **Operator rank** — five quests on instruction: constraints, deliverables, roles, voice, and revision. Ends with **The Confident Liar** boss
 - **Analyst rank** — five quests on evidence: quoting a card, scope, recency, exact wording, and unsupported claims. Ends with **The Vague Machine** boss
 - **Campus map** — two rooms and the Workshop, three ranks still locked, with per-rank progress, boss trials and a notebook of artifacts
-- **The Workshop** — the Tinkerer rank starts with three `flow` lessons: chain two model steps, carry a variable through three, then add a trigger and strip a source link. No code, real outputs, a run log and deterministic flow checks
+- **The Workshop** — the Tinkerer rank: five `flow` lessons (chain steps, carry a variable, add a trigger, fail gracefully, build a daily routine with a step budget), ending in **The Runaway** boss. No code, real outputs, a run log and deterministic flow checks
 - **Share and signup** — a native share card and an optional email list
 - **Real AI behind every command** — Agnes 3.0 Flash, streamed from a server route. Prompt scope, moderation, signed sessions, rate limits and a deterministic fallback
 - **Local progress** — XP, completed quests and artifacts in `localStorage`; no account required
@@ -163,7 +163,7 @@ docs/                  README screenshots
 
 Next up:
 
-- Two more flow quests and The Runaway boss
+- Cloudflare migration — OpenNext spike on a branch, Vercel as fallback
 - Ranks 4–6: `tool`, `eval`, `deploy`
 - A shared rate limiter (Upstash) and Sentry as soon as the keys exist
 - Auth and synced progress once retention is proven

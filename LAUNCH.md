@@ -6,7 +6,7 @@ Repo: **https://github.com/instictop-cmd/Bench** (private)
 ## What is in the product
 
 - Prologue, 10 quests across two ranks, two deterministic boss trials
-- Workshop: three `flow` lessons (Chain Two Steps, Carry a Variable, Add a Trigger) with a scripted FlowRuntime, trigger conditions, run log and deterministic validation
+- Workshop: five `flow` lessons (Chain Two Steps, Carry a Variable, Add a Trigger, Fail Gracefully, The Daily Flow) plus **The Runaway** boss, with a scripted FlowRuntime, trigger conditions, guards, a step budget, run log and deterministic validation
 - Real model calls through Agnes 3.0 Flash, streamed, scoped per quest
 - Signed session cookie, origin + JSON checks, moderation, per-session/IP/hour limits, daily cap, prompt cache, provider fallback
 - Campus map, XP, notebook artifacts, share button, optional email capture
@@ -69,8 +69,9 @@ This is the global backstop behind the app-level session, IP and daily limits. 1
 
 - Full run on the production URL: **10/10 quests, 2/2 bosses, 185 XP, 12 artifacts**
 - Both ranks show `rank complete`; campus completion banner appears
-- **Workshop:** `fl-01`, `fl-02` and `fl-03` completed on production; **230 XP, 15 artifacts, Workshop 3/3, 13/13 lessons**
-- Flow path: build a flow, run it with real model output, validate order and trigger, save the artifact; invalid order/trigger is rejected with a hint; provider refusal or failure uses the authored fallback; refusals are never cached
+- **Workshop:** `fl-01` through `fl-05` and The Runaway completed on production; **300 XP, 18 artifacts, Workshop 5/5 + boss, 15/15 lessons**
+- Flow path: build a flow, run it with real model output, validate order, trigger, guard and budget; invalid flows are rejected with a hint; provider refusal or failure uses the authored fallback; refusals are never cached
+- Boss artifacts (Truth Auditor, Fog Lens, Runaway Badge) appear in the notebook
 - Security gates: `401` no session, `415` wrong content type, `403` cross-site, moderation refusal
 - Provider failure path: invalid key → authored reference answer → quest still completes
 - CI green on `main`; build, lint and typecheck pass
